@@ -1,0 +1,142 @@
+body, html {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-color: #333;
+}
+
+.centered-title {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #333;
+    text-shadow: 2px 2px 4px #000;
+    font-size: 2em;
+    text-align: center;
+}
+
+.bio {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #333;
+    text-shadow: 2px 2px 4px #000;
+    font-size: 1.5em;
+    text-align: center;
+}
+
+nav {
+    background-color: #333;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+}
+
+.navbar li {
+    margin: 0 15px;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: white;
+    font-size: 18px;
+    padding: 14px 20px;
+    display: block;
+}
+
+.navbar a:hover {
+    background-color: #575757;
+}
+
+section {
+    padding: 100px 20px;
+    margin-top: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background-color: #333;
+}
+
+#Bio, #Portfolio, #Experience {
+    height: 100vh;
+    color: #fff;
+    position: relative;
+    padding-top: 0;
+}
+
+#Bio h1, #Portfolio h1, #Experience h1 {
+    top: 0px;
+    margin: 0;
+    justify-content: center;
+}
+
+.project {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.project:nth-child(odd) .project-text {
+    order: 1;
+}
+
+.project:nth-child(odd) .project-image {
+    order: 2;
+}
+
+.project:nth-child(even) .project-text {
+    order: 2;
+}
+
+.project:nth-child(even) .project-image {
+    order: 1;
+}
+
+.project-text, .project-image {
+    flex: 1 1 45%; /* Adjust to fit your layout */
+    margin: 10px 5px;
+}
+
+.project-image img {
+    max-width: 30%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+#Top{
+    height: 100vh;
+    background-image: url('src/image-1.webp');
+    background-size: cover;
+    background-position: center;
+    color: white;
+    margin-top: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .centered-title {
+        font-size: 1.5em;
+    }
+}
