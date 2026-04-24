@@ -9,202 +9,97 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-
-    <nav>
-        <a href="#Top" class="nav-logo">VM</a>
-        <ul class="navbar">
-            <li><a href="#Bio">Bio</a></li>
-            <li><a href="#Projects">Projects</a></li>
-            <li><a href="#OpenSource">Open Source</a></li>
-            <li><a href="#Experience">Experience</a></li>
-        </ul>
-    </nav>
-
-    <section id="Top">
-        <div class="hero">
-            <h1 class="hero-title">Vel Moon</h1>
-            <p class="hero-subtitle">Legal Tech · ML Inference · Open Source</p>
-            <a href="#Bio" class="scroll-down">↓</a>
-        </div>
-    </section>
-
-    <section id="Bio">
-        <h2 class="section-title">About</h2>
-        <div class="bio-card">
-            <p>Hi, I'm Vel. I work at <strong>RJLF LLP</strong> building legal tech — document processing, court automation, and firm infrastructure. On the open-source side, I contribute to <a href="https://github.com/vllm-project/vllm" target="_blank">vLLM</a> and <a href="https://github.com/ollama/ollama" target="_blank">Ollama</a>, compete in <a href="https://www.kaggle.com/" target="_blank">Kaggle ML competitions</a>, and publish quantized models on <a href="https://huggingface.co/" target="_blank">Hugging Face</a>.</p>
-        </div>
-    </section>
-
-    <section id="Projects">
-        <h2 class="section-title">Projects</h2>
-        <div class="projects-grid">
-
-            <a href="https://github.com/Code4me2/chiya-library" target="_blank" class="project-card">
-                <div class="card-content">
-                    <h3>Chiya Library</h3>
-                    <p>Automated research intelligence pipeline with agent-driven curation, RSS/API collection, deduplication, and daily digests.</p>
-                    <span class="lang python">Python</span>
-                </div>
-                <span class="card-arrow">→</span>
-            </a>
-
-            <a href="https://github.com/Code4me2/court-processor" target="_blank" class="project-card">
-                <div class="card-content">
-                    <h3>Court Processor</h3>
-                    <p>CourtListener/PACER integration for legal document processing, transcript parsing, and automated court workflow pipelines.</p>
-                    <span class="lang python">Python</span>
-                </div>
-                <span class="card-arrow">→</span>
-            </a>
-
-            <a href="https://github.com/Code4me2/Aletheia-v0.1" target="_blank" class="project-card">
-                <div class="card-content">
-                    <h3>Aletheia</h3>
-                    <p>Unified AI-powered legal document processing platform with workflow automation and intelligent analysis.</p>
-                    <span class="lang python">Python</span>
-                </div>
-                <span class="card-arrow">→</span>
-            </a>
-
-            <a href="https://github.com/Code4me2/autonomous-ollama" target="_blank" class="project-card">
-                <div class="card-content">
-                    <h3>Autonomous Ollama</h3>
-                    <p>Ollama with MCP integration for autonomous agentic tool use — local LLM agents that can interact with tools.</p>
-                    <span class="lang go">Go</span>
-                </div>
-                <span class="card-arrow">→</span>
-            </a>
-
-            <a href="https://github.com/Code4me2/BitNet" target="_blank" class="project-card">
-                <div class="card-content">
-                    <h3>BitNet</h3>
-                    <p>1-bit LLM inference framework — efficient model serving for quantized neural networks.</p>
-                    <span class="lang python">Python</span>
-                </div>
-                <span class="card-arrow">→</span>
-            </a>
-
-            <a href="https://github.com/Code4me2/hestia-shell" target="_blank" class="project-card">
-                <div class="card-content">
-                    <h3>Hestia Shell</h3>
-                    <p>Custom Linux desktop environment built with Quickshell/QML — part of the Hestia-OS ecosystem.</p>
-                    <span class="lang qml">QML</span>
-                </div>
-                <span class="card-arrow">→</span>
-            </a>
-
-            <a href="https://github.com/Code4me2/codex-ip" target="_blank" class="project-card">
-                <div class="card-content">
-                    <h3>Codex IP</h3>
-                    <p>Deterministic source-code analysis for IP litigation — automated code comparison and evidence extraction.</p>
-                    <span class="lang python">Python</span>
-                </div>
-                <span class="card-arrow">→</span>
-            </a>
-
-            <a href="https://github.com/Code4me2/agentic_flow" target="_blank" class="project-card">
-                <div class="card-content">
-                    <h3>Agentic Flow</h3>
-                    <p>Multi-agent orchestration system for complex AI workflows with tool-use coordination.</p>
-                    <span class="lang python">Python</span>
-                </div>
-                <span class="card-arrow">→</span>
-            </a>
-
-            <a href="https://github.com/Code4me2/Emerson" target="_blank" class="project-card">
-                <div class="card-content">
-                    <h3>Emerson</h3>
-                    <p>Linux desktop companion — system monitoring, automation, and personalized utilities.</p>
-                    <span class="lang python">Python</span>
-                </div>
-                <span class="card-arrow">→</span>
-            </a>
-
-            <a href="https://github.com/Code4me2/matcha-curated" target="_blank" class="project-card">
-                <div class="card-content">
-                    <h3>Matcha Curated</h3>
-                    <p>RSS digest pipeline combining matcha collection with TrendRadar-inspired scoring and filtering.</p>
-                    <span class="lang go">Go</span>
-                </div>
-                <span class="card-arrow">→</span>
-            </a>
-
-            <a href="https://github.com/Code4me2/Network_Analysis" target="_blank" class="project-card">
-                <div class="card-content">
-                    <h3>Network Analysis</h3>
-                    <p>PCAP-based network security analysis — statistical security posture assessment for home networks.</p>
-                    <span class="lang python">Python</span>
-                </div>
-                <span class="card-arrow">→</span>
-            </a>
-
-            <a href="https://github.com/Code4me2/claude-audit-system" target="_blank" class="project-card">
-                <div class="card-content">
-                    <h3>Claude Audit</h3>
-                    <p>PTY-based audit system for Claude Code interactions with memory-safe output capture and bias detection.</p>
-                    <span class="lang python">Python</span>
-                </div>
-                <span class="card-arrow">→</span>
-            </a>
-
-        </div>
-    </section>
-
-    <section id="OpenSource">
-        <h2 class="section-title">Open Source Contributions</h2>
-        <div class="oss-grid">
-            <div class="oss-card">
-                <h3>vLLM</h3>
-                <p>Contributor to the high-throughput LLM inference engine with PagedAttention — the framework powering most open-source LLM serving.</p>
-                <a href="https://github.com/vllm-project/vllm" target="_blank">github.com/vllm-project/vllm →</a>
-            </div>
-            <div class="oss-card">
-                <h3>Ollama</h3>
-                <p>Contributor to the local LLM inference framework — serving, quantization, and tool-use for running models on consumer hardware.</p>
-                <a href="https://github.com/ollama/ollama" target="_blank">github.com/ollama/ollama →</a>
-            </div>
-        </div>
-        <div class="oss-links">
-            <a href="https://github.com/Code4me2" target="_blank" class="oss-badge">GitHub</a>
-            <a href="https://huggingface.co/" target="_blank" class="oss-badge">Hugging Face</a>
-            <a href="https://www.kaggle.com/" target="_blank" class="oss-badge">Kaggle</a>
-        </div>
-    </section>
-
-    <section id="Experience">
-        <h2 class="section-title">Experience</h2>
-        <div class="timeline">
-            <div class="timeline-entry">
-                <div class="timeline-content">
-                    <h3>RJLF LLP</h3>
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h3 class="sidebar-heading">Experience</h3>
+                <div class="timeline-entry">
+                    <h4>RJLF LLP</h4>
                     <p class="role">Legal Tech & Automation</p>
-                    <p>Building practical tools for document processing, court workflows, PACER integration, and firm infrastructure.</p>
+                    <p>Document processing, court workflows, PACER integration.</p>
                 </div>
-            </div>
-            <div class="timeline-entry">
-                <div class="timeline-content">
-                    <h3>City College of San Francisco</h3>
-                    <p class="role">Teaching Assistant — Introductory Python</p>
-                    <p>Helping students learn programming fundamentals, debugging, and computational thinking.</p>
+                <div class="timeline-entry">
+                    <h4>CCSF</h4>
+                    <p class="role">TA — Introductory Python</p>
                 </div>
-            </div>
-            <div class="timeline-entry">
-                <div class="timeline-content">
-                    <h3>Clement Nursery · San Francisco</h3>
+                <div class="timeline-entry">
+                    <h4>Clement Nursery · SF</h4>
                     <p class="role">2024 – 2026</p>
                 </div>
             </div>
-        </div>
-    </section>
 
-    <footer>
-        <p>
-            <a href="https://github.com/Code4me2" target="_blank">GitHub</a> ·
-            <a href="https://huggingface.co/" target="_blank">Hugging Face</a> ·
-            <a href="https://www.kaggle.com/" target="_blank">Kaggle</a> ·
-            <a href="mailto:velvetmoon222999@gmail.com">Email</a>
-        </p>
-    </footer>
+            <div class="sidebar-section">
+                <h3 class="sidebar-heading">Open Source</h3>
+                <div class="oss-mini">
+                    <h4>vLLM</h4>
+                    <p>High-throughput LLM inference</p>
+                </div>
+                <div class="oss-mini">
+                    <h4>Ollama</h4>
+                    <p>Local LLM serving & quantization</p>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 class="sidebar-heading">Profiles</h3>
+                <ul class="profiles">
+                    <li><a href="https://github.com/Code4me2" target="_blank">GitHub →</a></li>
+                    <li><a href="https://huggingface.co/Code4me2" target="_blank">Hugging Face →</a></li>
+                    <li><a href="https://www.kaggle.com/Code4me2" target="_blank">Kaggle →</a></li>
+                    <li><a href="mailto:velvetmoon222999@gmail.com">Email →</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main -->
+        <main class="main">
+            <header class="hero-compact">
+                <h1 class="hero-title">Vel Moon</h1>
+                <p class="hero-subtitle">Legal Tech · ML Inference · Open Source</p>
+            </header>
+
+            <section class="bio-compact">
+                <p>Building practical tools at the intersection of law and machine learning. Contributor to major inference frameworks. Active in Kaggle competitions and Hugging Face model quantization.</p>
+            </section>
+
+            <section class="projects-compact">
+                <h2 class="section-title">Projects</h2>
+                <div class="projects-grid">
+                    <a href="https://github.com/Code4me2/chiya-library" target="_blank" class="project-card">
+                        <h3>Chiya Library</h3>
+                        <p>Automated research pipeline with agent-driven curation and daily digests.</p>
+                        <span class="lang python">Python</span>
+                    </a>
+                    <a href="https://github.com/Code4me2/court-processor" target="_blank" class="project-card">
+                        <h3>Court Processor</h3>
+                        <p>CourtListener/PACER integration for legal document processing and transcripts.</p>
+                        <span class="lang python">Python</span>
+                    </a>
+                    <a href="https://github.com/Code4me2/Aletheia-v0.1" target="_blank" class="project-card">
+                        <h3>Aletheia</h3>
+                        <p>AI-powered legal document processing with workflow automation.</p>
+                        <span class="lang python">Python</span>
+                    </a>
+                    <a href="https://github.com/Code4me2/autonomous-ollama" target="_blank" class="project-card">
+                        <h3>Autonomous Ollama</h3>
+                        <p>Local LLM agents with MCP tool-use integration.</p>
+                        <span class="lang go">Go</span>
+                    </a>
+                    <a href="https://github.com/Code4me2/BitNet" target="_blank" class="project-card">
+                        <h3>BitNet</h3>
+                        <p>1-bit LLM inference for quantized neural networks.</p>
+                        <span class="lang python">Python</span>
+                    </a>
+                    <a href="https://github.com/Code4me2/codex-ip" target="_blank" class="project-card">
+                        <h3>Codex IP</h3>
+                        <p>Deterministic source-code analysis for IP litigation.</p>
+                        <span class="lang python">Python</span>
+                    </a>
+                </div>
+            </section>
+        </main>
+    </div>
 
     <script src="scripts.js"></script>
 </body>
