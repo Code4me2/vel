@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,11 +11,17 @@
 <body>
     <!-- Top bar — sticky -->
     <div class="topbar">
-        <a href="https://github.com/Code4me2" target="_blank" class="topbar-link">GitHub</a>
-        <a href="https://huggingface.co/Code4me2" target="_blank" class="topbar-link">Hugging Face</a>
-        <a href="https://www.kaggle.com/Code4me2" target="_blank" class="topbar-link">Kaggle</a>
-        <a href="https://code4me2.github.io" target="_blank" class="topbar-link">Blog</a>
-        <a href="mailto:velvetmoon222999@gmail.com" class="topbar-link">Email</a>
+        <div class="topbar-links">
+            <a href="https://github.com/Code4me2" target="_blank" class="topbar-link">GitHub</a>
+            <a href="https://huggingface.co/Code4me2" target="_blank" class="topbar-link">Hugging Face</a>
+            <a href="https://www.kaggle.com/Code4me2" target="_blank" class="topbar-link">Kaggle</a>
+            <a href="https://code4me2.github.io" target="_blank" class="topbar-link">Blog</a>
+            <a href="mailto:velvetmoon222999@gmail.com" class="topbar-link">Email</a>
+        </div>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
+            <span class="icon-sun">☀️</span>
+            <span class="icon-moon">🌙</span>
+        </button>
     </div>
 
     <div class="wrapper">
