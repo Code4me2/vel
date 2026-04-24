@@ -54,8 +54,7 @@ body {
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
+    justify-content: center;
     z-index: 1000;
     transition: background 0.25s ease, border-color 0.25s ease;
 }
@@ -91,8 +90,10 @@ body {
     justify-content: center;
     cursor: pointer;
     transition: border-color 0.2s, background 0.2s;
-    font-size: 14px;
-    line-height: 1;
+    padding: 0;
+    position: absolute;
+    right: 16px;
+    color: var(--text-muted);
 }
 
 .theme-toggle:hover {
@@ -100,14 +101,18 @@ body {
     border-color: var(--accent);
 }
 
-.theme-toggle .icon-sun,
-.theme-toggle .icon-moon {
+.theme-toggle svg {
+    width: 16px;
+    height: 16px;
     display: none;
 }
 
-[data-theme="light"] .theme-toggle .icon-sun,
+[data-theme="light"] .theme-toggle .icon-sun {
+    display: block;
+}
+
 [data-theme="dark"] .theme-toggle .icon-moon {
-    display: inline;
+    display: block;
 }
 
 /* ── Wrapper ── */
