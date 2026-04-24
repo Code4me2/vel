@@ -4,37 +4,45 @@ body, html {
 }
 
 body {
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
     background-color: #333;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow-x: hidden;
 }
 
 .centered-title {
     position: absolute;
-    top: 30%;
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: #333;
-    text-shadow: 2px 2px 4px #000;
-    font-size: 2em;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+    font-size: 2.5em;
     text-align: center;
+    width: 100%;
 }
 
-.bio {
+.bio-footer {
     position: relative;
     padding: 40px 20px;
     color: #fff;
     text-align: center;
+    background-color: #222;
+}
+
+.bio-footer h4 {
+    margin: 0;
+    font-size: 1em;
+    line-height: 1.8;
 }
 
 nav {
-    background-color: #333;
+    background-color: rgba(51, 51, 51, 0.95);
     position: fixed;
     width: 100%;
     top: 0;
     z-index: 1000;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .navbar {
@@ -43,6 +51,7 @@ nav {
     margin: 0;
     display: flex;
     justify-content: center;
+    align-items: center;
 }
 
 .navbar li {
@@ -55,10 +64,12 @@ nav {
     font-size: 18px;
     padding: 14px 20px;
     display: block;
+    transition: background-color 0.3s;
 }
 
 .navbar a:hover {
     background-color: #575757;
+    border-radius: 4px;
 }
 
 section {
@@ -76,27 +87,30 @@ section {
     min-height: 100vh;
     color: #fff;
     position: relative;
-    padding-top: 0;
 }
 
 #Bio h1, #Portfolio h1, #Experience h1 {
     margin-bottom: 40px;
-    justify-content: center;
-    font-size: 2em;
+    font-size: 2.2em;
+    font-weight: 600;
+    letter-spacing: 2px;
 }
 
 #Bio p {
     max-width: 700px;
     line-height: 1.8;
     font-size: 1.1em;
+    color: #e0e0e0;
 }
 
-#Bio a, #Portfolio a, .bio a {
+#Bio a, #Portfolio a, .bio-footer a {
     color: #7dd3fc;
     text-decoration: none;
+    transition: color 0.2s;
 }
 
-#Bio a:hover, #Portfolio a:hover, .bio a:hover {
+#Bio a:hover, #Portfolio a:hover, .bio-footer a:hover {
+    color: #bae6fd;
     text-decoration: underline;
 }
 
@@ -108,6 +122,15 @@ section {
     margin-bottom: 60px;
     max-width: 900px;
     width: 100%;
+    padding: 30px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.project:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
 }
 
 .project:nth-child(odd) .project-text { order: 1; }
@@ -123,6 +146,7 @@ section {
 .project-text h2 {
     margin-bottom: 10px;
     font-size: 1.4em;
+    font-weight: 500;
 }
 
 .project-text p {
@@ -139,6 +163,7 @@ section {
 }
 
 .project-text a:hover {
+    color: #bae6fd;
     text-decoration: underline;
 }
 
@@ -148,21 +173,28 @@ section {
     display: block;
     margin: 0 auto;
     border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .experience-entry {
     margin-bottom: 30px;
     max-width: 600px;
+    padding: 20px 30px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    text-align: left;
 }
 
 .experience-entry h3 {
     margin-bottom: 5px;
     font-size: 1.3em;
+    font-weight: 500;
 }
 
 .experience-entry p {
     color: #ccc;
     line-height: 1.6;
+    margin: 0;
 }
 
 #Top {
@@ -177,19 +209,120 @@ section {
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .centered-title {
-        font-size: 1.5em;
+        font-size: 2em;
+        top: 50%;
+    }
+
+    .navbar {
+        justify-content: space-around;
+        padding: 0;
+    }
+
+    .navbar li {
+        margin: 0;
+    }
+
+    .navbar a {
+        font-size: 14px;
+        padding: 12px 10px;
+    }
+
+    section {
+        padding: 80px 15px;
+    }
+
+    #Bio h1, #Portfolio h1, #Experience h1 {
+        font-size: 1.8em;
+        margin-bottom: 30px;
+    }
+
+    #Bio p {
+        font-size: 1em;
+        line-height: 1.7;
     }
 
     .project {
         flex-direction: column;
         text-align: center;
+        padding: 20px;
+        margin-bottom: 30px;
     }
 
-    .project-text, .project-image {
+    .project:nth-child(odd) .project-text,
+    .project:nth-child(even) .project-text,
+    .project:nth-child(odd) .project-image,
+    .project:nth-child(even) .project-image {
+        order: unset;
         flex: 1 1 100%;
     }
 
+    .project-text {
+        margin-bottom: 20px;
+    }
+
+    .project-text h2 {
+        font-size: 1.2em;
+    }
+
+    .project-text p {
+        font-size: 0.95em;
+    }
+
+    .project-image img {
+        max-width: 90%;
+    }
+
+    .experience-entry {
+        padding: 15px 20px;
+        text-align: center;
+    }
+
+    .bio-footer h4 {
+        font-size: 0.9em;
+    }
+}
+
+@media (max-width: 480px) {
+    .centered-title {
+        font-size: 1.6em;
+    }
+
+    .navbar a {
+        font-size: 13px;
+        padding: 10px 8px;
+    }
+
+    section {
+        padding: 60px 10px;
+    }
+
+    #Bio h1, #Portfolio h1, #Experience h1 {
+        font-size: 1.5em;
+        margin-bottom: 25px;
+    }
+
     #Bio p {
-        font-size: 1em;
+        font-size: 0.95em;
+    }
+
+    .project {
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    .project-text h2 {
+        font-size: 1.1em;
+    }
+
+    .experience-entry h3 {
+        font-size: 1.1em;
+    }
+
+    .bio-footer {
+        padding: 30px 15px;
+    }
+
+    .bio-footer h4 {
+        font-size: 0.85em;
     }
 }
