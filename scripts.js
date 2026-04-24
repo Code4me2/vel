@@ -1,1 +1,1 @@
-// Layout is static — no JS needed.
+// Static layout — no JS needed.
