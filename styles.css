@@ -44,118 +44,114 @@ body {
     color: #1a1a1a;
 }
 
-/* ── Layout ── */
-.layout {
-    display: flex;
-    padding-top: 44px;
+/* ── Container ── */
+.container {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 72px 32px 80px;
 }
 
-/* ── Sidebar ── */
-.sidebar {
-    width: 260px;
-    min-width: 260px;
-    padding: 48px 28px 60px;
-    border-right: 1px solid rgba(0, 0, 0, 0.08);
-    background: #efefe9;
-    display: flex;
-    flex-direction: column;
-    gap: 40px;
+/* ── Header ── */
+header {
+    margin-bottom: 48px;
 }
 
-.sidebar-section {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-}
-
-.sidebar-heading {
-    font-family: 'Inter', sans-serif;
-    font-size: 0.65em;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 2.5px;
-    color: #999;
-}
-
-.sidebar-item h4 {
+header h1 {
     font-family: 'Playfair Display', serif;
-    font-size: 0.92em;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin-bottom: 2px;
-}
-
-.sidebar-item p {
-    font-size: 0.8em;
-    color: #666;
-    line-height: 1.4;
-}
-
-/* ── Main ── */
-.main {
-    flex: 1;
-    padding: 56px 56px 80px;
-    max-width: 860px;
-}
-
-/* ── Hero ── */
-.hero-compact {
-    margin-bottom: 28px;
-}
-
-.hero-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 3.2em;
+    font-size: 2.8em;
     font-weight: 900;
-    letter-spacing: -2px;
+    letter-spacing: -1.5px;
     color: #1a1a1a;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
-.hero-subtitle {
-    font-size: 0.82em;
+.tagline {
+    font-size: 0.8em;
     color: #888;
     font-weight: 500;
     letter-spacing: 2px;
     text-transform: uppercase;
 }
 
-/* ── Bio ── */
-.bio-compact {
+/* ── Sections ── */
+section {
     margin-bottom: 48px;
 }
 
-.bio-compact p {
-    font-size: 1em;
-    line-height: 1.7;
-    color: #444;
-    max-width: 600px;
-}
-
-/* ── Projects ── */
-.section-title {
+section h2 {
     font-family: 'Playfair Display', serif;
     font-size: 1.4em;
     font-weight: 700;
     color: #1a1a1a;
     margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
+/* ── Entries (experience, open source) ── */
+.entry {
+    margin-bottom: 24px;
+}
+
+.entry h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15em;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 2px;
+}
+
+.entry .role {
+    font-size: 0.85em;
+    color: #2563eb;
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+.entry p {
+    font-size: 0.92em;
+    color: #555;
+    line-height: 1.6;
+}
+
+.link-arrow {
+    font-size: 0.85em;
+    color: #999;
+    text-decoration: none;
+    margin-left: 6px;
+    transition: color 0.2s;
+}
+
+.link-arrow:hover {
+    color: #2563eb;
+}
+
+/* ── Bio ── */
+.bio p {
+    font-size: 1em;
+    line-height: 1.7;
+    color: #444;
+    font-style: italic;
+    border-left: 3px solid rgba(37, 99, 235, 0.3);
+    padding-left: 16px;
+}
+
+/* ── Projects ── */
 .project-list {
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .project-list li a {
     text-decoration: none;
     color: #1a1a1a;
-    font-size: 0.95em;
+    font-size: 0.92em;
     font-weight: 500;
     display: block;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     transition: color 0.2s, border-color 0.2s;
 }
 
@@ -176,59 +172,25 @@ body {
 }
 
 /* ── Responsive ── */
-@media (max-width: 800px) {
-    .layout {
-        flex-direction: column;
+@media (max-width: 600px) {
+    .container {
+        padding: 64px 20px 60px;
     }
 
-    .sidebar {
-        width: 100%;
-        min-width: 100%;
-        border-right: none;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-        padding: 28px 24px 32px;
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 28px;
-    }
-
-    .sidebar-section {
-        flex: 1;
-        min-width: 180px;
-    }
-
-    .main {
-        padding: 36px 24px 60px;
-    }
-
-    .hero-title {
-        font-size: 2.2em;
+    header h1 {
+        font-size: 2em;
     }
 
     .topbar {
-        gap: 16px;
-    }
-
-    .topbar-link {
-        font-size: 0.75em;
-    }
-}
-
-@media (max-width: 480px) {
-    .sidebar {
-        flex-direction: column;
-    }
-
-    .topbar {
-        gap: 12px;
+        gap: 14px;
         height: 40px;
     }
 
     .topbar-link {
-        font-size: 0.7em;
+        font-size: 0.72em;
     }
 
-    .layout {
-        padding-top: 40px;
+    .container {
+        padding-top: 60px;
     }
 }
