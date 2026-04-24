@@ -77,6 +77,7 @@ nav {
     justify-content: center;
     margin-top: 0;
     padding: 0;
+    position: relative;
     background: radial-gradient(ellipse at 50% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
 }
 
@@ -106,13 +107,13 @@ nav {
 }
 
 .scroll-down {
-    position: absolute;
-    bottom: 40px;
-    left: 50%;
-    transform: translateX(-50%);
+    display: block;
+    margin: 30px auto 0;
     color: #555;
     font-size: 2em;
     text-decoration: none;
+    text-align: center;
+    width: fit-content;
     animation: bounce 2s infinite;
 }
 
@@ -391,8 +392,8 @@ footer a:hover {
 }
 
 @keyframes bounce {
-    0%, 100% { transform: translateX(-50%) translateY(0); }
-    50% { transform: translateX(-50%) translateY(10px); }
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(10px); }
 }
 
 /* Scroll animations */
