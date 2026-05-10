@@ -29,3 +29,20 @@
         }
     });
 })();
+
+// ── Text scramble on page load ──
+(function () {
+    const h1 = document.querySelector('header h1');
+    if (!h1 || !window.TextScramble) return;
+
+    // Respect reduced-motion preference
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (prefersReduced) return; // skip animation entirely
+
+    const { scramble, Sequence } = window.TextScramble;
+
+    // Scramble the heading on load
+    const seq = new Sequence(h1, { duration: 900, revealRate: 0.05 });
+    seq.add(h1.textContent);
+})();

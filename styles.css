@@ -266,6 +266,14 @@ section h2 {
     opacity: 1;
 }
 
+/* ── Scramble Effect ── */
+.scramble-anchor {
+    visibility: hidden;
+    white-space: pre;
+    position: absolute;
+    pointer-events: none;
+}
+
 /* ── Responsive ── */
 @media (max-width: 820px) {
     .grid {
