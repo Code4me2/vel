@@ -285,7 +285,11 @@ header > .scramble-trigger {
 }
 
 .scramble-char {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
 }
 
 .is-scrambling .scramble-char {
