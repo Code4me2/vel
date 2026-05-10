@@ -272,6 +272,11 @@ section h2 {
     max-width: 100%;
 }
 
+/* Keep header children stacked vertically even with scramble-trigger */
+header > .scramble-trigger {
+    display: block;
+}
+
 .is-scrambling {
     font-variant-ligatures: none;
     text-rendering: geometricPrecision;
