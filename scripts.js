@@ -38,7 +38,7 @@
     const controller = window.TextScramble.init(h1, {
         text: h1.textContent,
         mode: 'both',
-        mountDuration: 3000,
+        mountDuration: 1500,
         sweepDirection: 'ltr',
         pointerRadius: 1,
         settleMs: 400,

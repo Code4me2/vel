@@ -56,8 +56,12 @@ const TextScramble = (() => {
     return el.querySelectorAll('.scramble-char');
   }
 
+  function displayChar(ch) {
+    return isWhitespace(ch) ? '\u00a0' : ch;
+  }
+
   function setCharAt(spans, index, char) {
-    if (spans[index]) spans[index].textContent = char;
+    if (spans[index]) spans[index].textContent = displayChar(char);
   }
 
   function setAllChars(spans, chars) {
@@ -120,9 +124,17 @@ const TextScramble = (() => {
 
     const startTime = performance.now();
     let frameId = null;
+    const frameInterval = 33; // ~30fps
+    let lastFrame = 0;
 
     return new Promise((resolve) => {
       function tick(now) {
+        if (now - lastFrame < frameInterval) {
+          frameId = requestAnimationFrame(tick);
+          return;
+        }
+        lastFrame = now;
+
         const elapsed = now - startTime;
         let changed = false;
 
@@ -171,6 +183,8 @@ const TextScramble = (() => {
     let frame = 0;
     let running = true;
     let frameId = null;
+    const frameInterval = 33; // ~30fps
+    let lastFrame = 0;
 
     function onPointerMove(e) {
       if (!running) return;
@@ -194,9 +208,13 @@ const TextScramble = (() => {
       activeIndices.clear();
     }
 
-    function tick() {
+    function tick(now) {
       if (!running) return;
-      const now = performance.now();
+      if (now - lastFrame < frameInterval) {
+        frameId = requestAnimationFrame(tick);
+        return;
+      }
+      lastFrame = now;
 
       // Refresh timestamps for active indices every frame —
       // critical: stationary cursors keep cycling
@@ -210,8 +228,8 @@ const TextScramble = (() => {
 
         if (t === 0) {
           // Settled — show final char
-          if (spans[i].textContent !== graphemes[i]) {
-            spans[i].textContent = graphemes[i];
+          if (spans[i].textContent !== displayChar(graphemes[i])) {
+            spans[i].textContent = displayChar(graphemes[i]);
           }
         } else if (now - t < settleMs) {
           // Cycling — show random glyph
@@ -221,7 +239,7 @@ const TextScramble = (() => {
         } else {
           // Just expired — settle back
           lastTouched[i] = 0;
-          spans[i].textContent = graphemes[i];
+          spans[i].textContent = displayChar(graphemes[i]);
         }
       }
 
