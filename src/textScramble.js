@@ -387,7 +387,7 @@ const TextScramble = (() => {
   return {
     init,
     scramble,
-    Sequence,
+    Sequence: ScrambleSequence,
   };
 })();
 
