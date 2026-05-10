@@ -43,6 +43,6 @@
     const { scramble, Sequence } = window.TextScramble;
 
     // Scramble the heading on load
-    const seq = new Sequence(h1, { duration: 2000, revealRate: 0.05 });
+    const seq = new Sequence(h1, { duration: 3000, revealRate: 0.05 });
     seq.add(h1.textContent);
 })();
