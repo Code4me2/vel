@@ -44,22 +44,17 @@
         settleMs: 400,
     });
 
-    // Scramble subtitle (tagline) with a delay after h1
+    // Scramble subtitle (tagline) — starts immediately, no hide/reveal
     const tagline = document.querySelector('.tagline');
     if (tagline) {
         const taglineCtrl = window.TextScramble.init(tagline, {
             text: tagline.textContent,
             mode: 'both',
-            mountDuration: 2000,
+            mountDuration: 2500,
             sweepDirection: 'ltr',
             pointerRadius: 1,
             settleMs: 400,
         });
-        // Stagger: start subtitle 1.5s after page load
-        tagline.style.visibility = 'hidden';
-        setTimeout(() => {
-            tagline.style.visibility = 'visible';
-        }, 1500);
     }
 
     // Clean up on page unload
