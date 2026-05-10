@@ -9,24 +9,120 @@ const TextScramble = (() => {
     symbols: '!@#$%^&*()_+-=[]{}|;:,.<>?',
     mixed: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()',
   };
+  const CHAR_UPDATE_INTERVAL = 64;
+  const activeAnimations = new WeakMap();
 
   function randomChar(charSet) {
     return charSet[Math.floor(Math.random() * charSet.length)];
   }
 
+  function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+  }
+
+  function toFiniteNumber(value, fallback) {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : fallback;
+  }
+
+  function getGraphemes(text) {
+    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+      const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+      return Array.from(segmenter.segment(text), ({ segment }) => segment);
+    }
+
+    return Array.from(text);
+  }
+
+  function prefersReducedMotion() {
+    return (
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    );
+  }
+
+  function isHTMLElement(el) {
+    return typeof HTMLElement !== 'undefined' && el instanceof HTMLElement;
+  }
+
   // Ensure element width stays stable during scramble
-  function lockWidth(el) {
+  function lockWidth(el, text) {
     const span = document.createElement('span');
     span.className = 'scramble-anchor';
-    span.textContent = el.textContent;
+    span.textContent = text || '\u00a0';
     el.appendChild(span);
-    el.style.minWidth = span.offsetWidth + 'px';
+    const width = Math.ceil(span.getBoundingClientRect().width);
     span.remove();
+
+    if (width > 0) {
+      el.style.minWidth = `${width}px`;
+    }
   }
 
   // Release width lock after animation
   function unlockWidth(el) {
     el.style.minWidth = '';
+  }
+
+  function applyA11yState(el, text) {
+    const previousAriaLabel = el.getAttribute('aria-label');
+    const previousAriaBusy = el.getAttribute('aria-busy');
+
+    el.setAttribute('aria-label', text);
+    el.setAttribute('aria-busy', 'true');
+
+    return {
+      previousAriaLabel,
+      previousAriaBusy,
+    };
+  }
+
+  function restoreA11yState(el, state) {
+    if (!state) return;
+
+    if (state.previousAriaLabel === null) {
+      el.removeAttribute('aria-label');
+    } else {
+      el.setAttribute('aria-label', state.previousAriaLabel);
+    }
+
+    if (state.previousAriaBusy === null) {
+      el.removeAttribute('aria-busy');
+    } else {
+      el.setAttribute('aria-busy', state.previousAriaBusy);
+    }
+  }
+
+  function cleanupAnimation(record, { finalText, cancelled = false } = {}) {
+    if (!record) return;
+
+    if (record.frameId !== null) {
+      cancelAnimationFrame(record.frameId);
+      record.frameId = null;
+    }
+
+    if (finalText !== undefined) {
+      record.el.textContent = finalText;
+    }
+
+    if (record.shouldLock) unlockWidth(record.el);
+    record.el.classList.remove('is-scrambling');
+    restoreA11yState(record.el, record.a11yState);
+
+    if (activeAnimations.get(record.el) === record) {
+      activeAnimations.delete(record.el);
+    }
+
+    record.resolve({ cancelled });
+  }
+
+  function cancelActive(el) {
+    cleanupAnimation(activeAnimations.get(el), { cancelled: true });
+  }
+
+  function isScramblableChar(char) {
+    return !/^\s$/.test(char);
   }
 
   /**
@@ -41,7 +137,11 @@ const TextScramble = (() => {
    * @param {boolean} [options.lockWidth] - Keep width stable (default true)
    * @returns {Promise<void>} Resolves when animation completes
    */
-  function scramble(el, {
+  function scramble(el, options = {}) {
+    return runScramble(el, options || {}).then(() => undefined);
+  }
+
+  function runScramble(el, {
     text,
     duration = 800,
     charSet = 'mixed',
@@ -49,76 +149,114 @@ const TextScramble = (() => {
     revealEnd = 0.9,
     lockWidth: shouldLock = true,
   } = {}) {
+    if (!isHTMLElement(el)) {
+      return Promise.resolve({ cancelled: true });
+    }
+
     const chars = CHAR_SETS[charSet] || CHAR_SETS.mixed;
-    text = text !== undefined ? text : el.textContent || '';
-
-    // Clear previous content
-    el.textContent = '';
-
-    if (shouldLock) lockWidth(el);
-
-    const target = text.split('');
+    text = text !== undefined ? String(text) : el.textContent || '';
+    duration = Math.max(0, toFiniteNumber(duration, 800));
+    revealStart = clamp(toFiniteNumber(revealStart, 0.05), 0, 1);
+    revealEnd = clamp(toFiniteNumber(revealEnd, 0.9), revealStart, 1);
+    const target = getGraphemes(text);
     const len = target.length;
+
+    cancelActive(el);
+
+    if (prefersReducedMotion() || duration === 0 || len === 0) {
+      el.textContent = text;
+      return Promise.resolve({ cancelled: false });
+    }
+
+    if (shouldLock) lockWidth(el, text);
+    el.textContent = '';
+    el.classList.add('is-scrambling');
+
     const revealed = new Array(len).fill(false);
-    const current = new Array(len).fill('').map(() => randomChar(chars));
+    const current = target.map((char) => (isScramblableChar(char) ? randomChar(chars) : char));
+    const a11yState = applyA11yState(el, text);
 
     // Pre-assign each character a reveal time (0-1 range) for smooth, predictable distribution
     const revealTimes = new Array(len);
     for (let i = 0; i < len; i++) {
-      revealTimes[i] = revealStart + Math.random() * (revealEnd - revealStart);
+      revealTimes[i] = isScramblableChar(target[i])
+        ? revealStart + Math.random() * (revealEnd - revealStart)
+        : 0;
     }
 
     let startTime = null;
-    let animId = null;
+    let lastNoiseTick = -1;
+    let lastRendered = '';
 
     return new Promise((resolve) => {
+      const record = {
+        el,
+        frameId: null,
+        shouldLock,
+        a11yState,
+        resolve,
+      };
+      activeAnimations.set(el, record);
+
       function step(timestamp) {
+        if (activeAnimations.get(el) !== record) return;
+
+        record.frameId = null;
         if (startTime === null) startTime = timestamp;
         const elapsed = timestamp - startTime;
         const progress = Math.min(elapsed / duration, 1);
+        const noiseTick = Math.floor(elapsed / CHAR_UPDATE_INTERVAL);
+        let changed = false;
 
         // Reveal characters whose time has come
         for (let i = 0; i < len; i++) {
           if (!revealed[i] && progress >= revealTimes[i]) {
             revealed[i] = true;
             current[i] = target[i];
+            changed = true;
           }
         }
 
-        // Cycle unrevealed characters every other frame for visual noise
-        if (Math.floor(elapsed / 50) !== Math.floor((elapsed - 16.67) / 50)) {
+        // Cycle unrevealed characters on a fixed cadence to avoid needless DOM writes.
+        if (noiseTick !== lastNoiseTick) {
+          lastNoiseTick = noiseTick;
           for (let i = 0; i < len; i++) {
-            if (!revealed[i]) {
+            if (!revealed[i] && isScramblableChar(target[i])) {
               current[i] = randomChar(chars);
+              changed = true;
             }
           }
         }
 
-        el.textContent = current.join('');
+        const nextText = current.join('');
+        if (changed && nextText !== lastRendered) {
+          el.textContent = nextText;
+          lastRendered = nextText;
+        }
 
         if (progress >= 1) {
-          // Ensure all characters are revealed
-          for (let i = 0; i < len; i++) {
-            current[i] = target[i];
-          }
-          el.textContent = target.join('');
-          if (shouldLock) unlockWidth(el);
-          cancelAnimationFrame(animId);
-          resolve();
+          cleanupAnimation(record, { finalText: text });
           return;
         }
 
-        animId = requestAnimationFrame(step);
+        record.frameId = requestAnimationFrame(step);
       }
 
-      animId = requestAnimationFrame(step);
+      record.frameId = requestAnimationFrame(step);
     });
   }
 
   // ── State machine for sequenced animations ──
   class ScrambleSequence {
     constructor(el, options = {}) {
-      this.el = el instanceof HTMLElement ? el : document.querySelector(el);
+      this.el = isHTMLElement(el)
+        ? el
+        : typeof document !== 'undefined'
+          ? document.querySelector(el)
+          : null;
+      if (!this.el) {
+        throw new Error('TextScramble.Sequence target element was not found');
+      }
       this.originalText = this.el.textContent;
       this.options = options;
       this.running = false;
@@ -145,6 +283,7 @@ const TextScramble = (() => {
       this.interrupted = true;
       this.running = false;
       this.queue = [];
+      cancelActive(this.el);
       this.el.textContent = this.originalText;
       return this;
     }
@@ -155,7 +294,8 @@ const TextScramble = (() => {
 
       while (this.queue.length > 0 && !this.interrupted) {
         const item = this.queue.shift();
-        await scramble(this.el, { ...this.options, ...item });
+        const result = await runScramble(this.el, { ...this.options, ...item });
+        if (result.cancelled) break;
       }
 
       this.running = false;

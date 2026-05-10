@@ -267,11 +267,32 @@ section h2 {
 }
 
 /* ── Scramble Effect ── */
+.scramble-trigger {
+    display: inline-block;
+    max-width: 100%;
+}
+
+.is-scrambling {
+    font-variant-ligatures: none;
+    text-rendering: geometricPrecision;
+    user-select: none;
+}
+
 .scramble-anchor {
     visibility: hidden;
     white-space: pre;
     position: absolute;
     pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .scramble-trigger {
+        transition: color 0.2s ease;
+    }
+
+    .scramble-trigger:hover {
+        color: var(--accent);
+    }
 }
 
 /* ── Responsive ── */
