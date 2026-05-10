@@ -1,37 +1,25 @@
-// ── Text Scramble Effect ──
-// Framework-agnostic: targets any element by selector.
-// Characters cycle through random glyphs before settling on the final text.
+// ── Text Scramble — Spec v2 ──
+// Mount sweep (deterministic LTR/RTL wave) + pointer-driven hover.
+// Vanilla JS IIFE, no dependencies.
 
 const TextScramble = (() => {
-  const CHAR_SETS = {
-    alpha: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
-    numeric: '0123456789',
-    symbols: '!@#$%^&*()_+-=[]{}|;:,.<>?',
-    mixed: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()',
-  };
-  const CHAR_UPDATE_INTERVAL = 64;
-  const activeAnimations = new WeakMap();
+  'use strict';
 
-  function randomChar(charSet) {
-    return charSet[Math.floor(Math.random() * charSet.length)];
-  }
+  const DEFAULT_CHARSET =
+    '\u2593\u2592\u2591\u2588\u2584\u2580\u258c\u2590\u2502\u2500\u250c\u2510\u2514\u2518\u251c\u2524\u252c\u2534\u253c' +
+    '\u2801\u2802\u2803\u2804\u2805\u2806\u2807\u2808\u2809\u280a\u280b\u280c\u280d\u280e\u280f' +
+    '0123456789';
 
-  function clamp(value, min, max) {
-    return Math.min(Math.max(value, min), max);
-  }
+  const DEFAULT_MOUNT_DURATION = 2000;
+  const DEFAULT_POINTER_RADIUS = 1;
+  const DEFAULT_SETTLE_MS = 400;
+  const DEFAULT_SWEEP_DIR = 'ltr';
+  const DEFAULT_MODE = 'both';
 
-  function toFiniteNumber(value, fallback) {
-    const number = Number(value);
-    return Number.isFinite(number) ? number : fallback;
-  }
+  // ── Helpers ──
 
-  function getGraphemes(text) {
-    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
-      const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
-      return Array.from(segmenter.segment(text), ({ segment }) => segment);
-    }
-
-    return Array.from(text);
+  function randomChar(charset) {
+    return charset[Math.floor(Math.random() * charset.length)];
   }
 
   function prefersReducedMotion() {
@@ -42,11 +30,42 @@ const TextScramble = (() => {
     );
   }
 
-  function isHTMLElement(el) {
-    return typeof HTMLElement !== 'undefined' && el instanceof HTMLElement;
+  function getGraphemes(text) {
+    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+      const s = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+      return Array.from(s.segment(text), ({ segment }) => segment);
+    }
+    return Array.from(text);
   }
 
-  // Ensure element width stays stable during scramble
+  function isWhitespace(ch) {
+    return /^\s$/.test(ch);
+  }
+
+  // ── DOM: per-char spans (created once, updated in place) ──
+
+  function buildSpans(el, count) {
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < count; i++) {
+      const span = document.createElement('span');
+      span.className = 'scramble-char';
+      frag.appendChild(span);
+    }
+    el.textContent = '';
+    el.appendChild(frag);
+    return el.querySelectorAll('.scramble-char');
+  }
+
+  function setCharAt(spans, index, char) {
+    if (spans[index]) spans[index].textContent = char;
+  }
+
+  function setAllChars(spans, chars) {
+    for (let i = 0; i < chars.length; i++) {
+      setCharAt(spans, i, chars[i]);
+    }
+  }
+
   function lockWidth(el, text) {
     const span = document.createElement('span');
     span.className = 'scramble-anchor';
@@ -54,236 +73,302 @@ const TextScramble = (() => {
     el.appendChild(span);
     const width = Math.ceil(span.getBoundingClientRect().width);
     span.remove();
-
-    if (width > 0) {
-      el.style.minWidth = `${width}px`;
-    }
+    if (width > 0) el.style.minWidth = width + 'px';
   }
 
-  // Release width lock after animation
   function unlockWidth(el) {
     el.style.minWidth = '';
   }
 
-  function applyA11yState(el, text) {
-    const previousAriaLabel = el.getAttribute('aria-label');
-    const previousAriaBusy = el.getAttribute('aria-busy');
+  // ── Accessibility ──
 
-    el.setAttribute('aria-label', text);
-    el.setAttribute('aria-busy', 'true');
-
-    return {
-      previousAriaLabel,
-      previousAriaBusy,
-    };
-  }
-
-  function restoreA11yState(el, state) {
-    if (!state) return;
-
-    if (state.previousAriaLabel === null) {
-      el.removeAttribute('aria-label');
+  function applyA11y(el, busy) {
+    if (busy) {
+      el.setAttribute('aria-busy', 'true');
+      el.setAttribute('aria-label', el.textContent || '');
     } else {
-      el.setAttribute('aria-label', state.previousAriaLabel);
-    }
-
-    if (state.previousAriaBusy === null) {
       el.removeAttribute('aria-busy');
-    } else {
-      el.setAttribute('aria-busy', state.previousAriaBusy);
+      el.removeAttribute('aria-label');
     }
   }
 
-  function cleanupAnimation(record, { finalText, cancelled = false } = {}) {
-    if (!record) return;
+  // ── Mount sweep (deterministic wave) ──
 
-    if (record.frameId !== null) {
-      cancelAnimationFrame(record.frameId);
-      record.frameId = null;
-    }
-
-    if (finalText !== undefined) {
-      record.el.textContent = finalText;
-    }
-
-    if (record.shouldLock) unlockWidth(record.el);
-    record.el.classList.remove('is-scrambling');
-    restoreA11yState(record.el, record.a11yState);
-
-    if (activeAnimations.get(record.el) === record) {
-      activeAnimations.delete(record.el);
-    }
-
-    record.resolve({ cancelled });
+  function scheduleSweep(i, N, duration, direction) {
+    const order = direction === 'ltr' ? i : N - 1 - i;
+    const start = (order / N) * duration * 0.6;
+    return start;
   }
 
-  function cancelActive(el) {
-    cleanupAnimation(activeAnimations.get(el), { cancelled: true });
-  }
-
-  function isScramblableChar(char) {
-    return !/^\s$/.test(char);
-  }
-
-  /**
-   * Scramble an element's text.
-   * @param {HTMLElement} el - Target element
-   * @param {Object} options
-   * @param {string} [options.text] - Final text (defaults to el.textContent)
-   * @param {number} [options.duration] - Total animation duration in ms (default 800)
-   * @param {string} [options.charSet] - Character set for scramble ('alpha'|'numeric'|'symbols'|'mixed')
-   * @param {number} [options.revealStart] - When to start revealing (0-1 of duration, default 0.05)
-   * @param {number} [options.revealEnd] - When reveal completes (0-1 of duration, default 0.9)
-   * @param {boolean} [options.lockWidth] - Keep width stable (default true)
-   * @returns {Promise<void>} Resolves when animation completes
-   */
-  function scramble(el, options = {}) {
-    return runScramble(el, options || {}).then(() => undefined);
-  }
-
-  function runScramble(el, {
-    text,
-    duration = 800,
-    charSet = 'mixed',
-    revealStart = 0.05,
-    revealEnd = 0.9,
-    lockWidth: shouldLock = true,
-  } = {}) {
-    if (!isHTMLElement(el)) {
-      return Promise.resolve({ cancelled: true });
+  function runMountSweep(el, graphemes, charset, duration, direction) {
+    const N = graphemes.length;
+    if (N === 0 || duration === 0) {
+      const spans = buildSpans(el, N);
+      setAllChars(spans, graphemes);
+      return Promise.resolve();
     }
 
-    const chars = CHAR_SETS[charSet] || CHAR_SETS.mixed;
-    text = text !== undefined ? String(text) : el.textContent || '';
-    duration = Math.max(0, toFiniteNumber(duration, 800));
-    revealStart = clamp(toFiniteNumber(revealStart, 0.05), 0, 1);
-    revealEnd = clamp(toFiniteNumber(revealEnd, 0.9), revealStart, 1);
-    const target = getGraphemes(text);
-    const len = target.length;
+    // Create spans once
+    const spans = buildSpans(el, N);
 
-    cancelActive(el);
+    // Pre-compute reveal times
+    const revealAt = graphemes.map((_, i) => scheduleSweep(i, N, duration, direction));
 
-    if (prefersReducedMotion() || duration === 0 || len === 0) {
-      el.textContent = text;
-      return Promise.resolve({ cancelled: false });
-    }
+    // Start all as random glyphs (whitespace stays as-is)
+    const display = graphemes.map((g) => (isWhitespace(g) ? g : randomChar(charset)));
+    setAllChars(spans, display);
 
-    if (shouldLock) lockWidth(el, text);
-    el.textContent = '';
-    el.classList.add('is-scrambling');
-
-    const revealed = new Array(len).fill(false);
-    const current = target.map((char) => (isScramblableChar(char) ? randomChar(chars) : char));
-    const a11yState = applyA11yState(el, text);
-
-    // Pre-assign each character a reveal time (0-1 range) for smooth, predictable distribution
-    const revealTimes = new Array(len);
-    for (let i = 0; i < len; i++) {
-      revealTimes[i] = isScramblableChar(target[i])
-        ? revealStart + Math.random() * (revealEnd - revealStart)
-        : 0;
-    }
-
-    let startTime = null;
-    let lastNoiseTick = -1;
-    let lastRendered = '';
+    const startTime = performance.now();
+    let frameId = null;
 
     return new Promise((resolve) => {
-      const record = {
-        el,
-        frameId: null,
-        shouldLock,
-        a11yState,
-        resolve,
-      };
-      activeAnimations.set(el, record);
-
-      function step(timestamp) {
-        if (activeAnimations.get(el) !== record) return;
-
-        record.frameId = null;
-        if (startTime === null) startTime = timestamp;
-        const elapsed = timestamp - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const noiseTick = Math.floor(elapsed / CHAR_UPDATE_INTERVAL);
+      function tick(now) {
+        const elapsed = now - startTime;
         let changed = false;
 
-        // Reveal characters whose time has come
-        for (let i = 0; i < len; i++) {
-          if (!revealed[i] && progress >= revealTimes[i]) {
-            revealed[i] = true;
-            current[i] = target[i];
+        for (let i = 0; i < N; i++) {
+          if (isWhitespace(graphemes[i])) continue;
+          if (elapsed >= revealAt[i]) {
+            if (display[i] !== graphemes[i]) {
+              display[i] = graphemes[i];
+              changed = true;
+            }
+          } else {
+            display[i] = randomChar(charset);
             changed = true;
           }
         }
 
-        // Cycle unrevealed characters on a fixed cadence to avoid needless DOM writes.
-        if (noiseTick !== lastNoiseTick) {
-          lastNoiseTick = noiseTick;
-          for (let i = 0; i < len; i++) {
-            if (!revealed[i] && isScramblableChar(target[i])) {
-              current[i] = randomChar(chars);
-              changed = true;
-            }
-          }
-        }
+        if (changed) setAllChars(spans, display);
 
-        const nextText = current.join('');
-        if (changed && nextText !== lastRendered) {
-          el.textContent = nextText;
-          lastRendered = nextText;
-        }
-
-        if (progress >= 1) {
-          cleanupAnimation(record, { finalText: text });
+        if (elapsed >= duration) {
+          setAllChars(spans, graphemes);
+          cancelAnimationFrame(frameId);
+          resolve();
           return;
         }
 
-        record.frameId = requestAnimationFrame(step);
+        frameId = requestAnimationFrame(tick);
       }
 
-      record.frameId = requestAnimationFrame(step);
+      frameId = requestAnimationFrame(tick);
     });
   }
 
-  // ── State machine for sequenced animations ──
+  // ── Pointer-driven mode ──
+
+  function runPointerMode(el, graphemes, charset, pointerRadius, settleMs) {
+    const N = graphemes.length;
+    if (N === 0) return { destroy: () => {} };
+
+    // Create spans once
+    const spans = buildSpans(el, N);
+    setAllChars(spans, graphemes);
+
+    // Per-char state: timestamp of last touch (0 = null/unset)
+    const lastTouched = new Float64Array(N);
+    const activeIndices = new Set();
+    let frame = 0;
+    let running = true;
+    let frameId = null;
+
+    function onPointerMove(e) {
+      if (!running) return;
+      activeIndices.clear();
+
+      // Find which span is under pointer
+      for (let i = 0; i < spans.length; i++) {
+        const r = spans[i].getBoundingClientRect();
+        if (e.clientX >= r.left && e.clientX <= r.right) {
+          // Hit found — add this and neighbors
+          for (let d = -pointerRadius; d <= pointerRadius; d++) {
+            const j = i + d;
+            if (j >= 0 && j < N) activeIndices.add(j);
+          }
+          break;
+        }
+      }
+    }
+
+    function onPointerLeave() {
+      activeIndices.clear();
+    }
+
+    function tick() {
+      if (!running) return;
+      const now = performance.now();
+
+      // Refresh timestamps for active indices every frame —
+      // critical: stationary cursors keep cycling
+      for (const i of activeIndices) {
+        lastTouched[i] = now;
+      }
+
+      // Update each character
+      for (let i = 0; i < N; i++) {
+        const t = lastTouched[i];
+
+        if (t === 0) {
+          // Settled — show final char
+          if (spans[i].textContent !== graphemes[i]) {
+            spans[i].textContent = graphemes[i];
+          }
+        } else if (now - t < settleMs) {
+          // Cycling — show random glyph
+          if (!isWhitespace(graphemes[i])) {
+            spans[i].textContent = randomChar(charset);
+          }
+        } else {
+          // Just expired — settle back
+          lastTouched[i] = 0;
+          spans[i].textContent = graphemes[i];
+        }
+      }
+
+      frame++;
+      frameId = requestAnimationFrame(tick);
+    }
+
+    el.addEventListener('pointermove', onPointerMove, { passive: true });
+    el.addEventListener('pointerleave', onPointerLeave, { passive: true });
+
+    lockWidth(el, graphemes.join(''));
+    el.classList.add('is-scrambling');
+
+    frameId = requestAnimationFrame(tick);
+
+    return {
+      destroy() {
+        running = false;
+        cancelAnimationFrame(frameId);
+        el.removeEventListener('pointermove', onPointerMove);
+        el.removeEventListener('pointerleave', onPointerLeave);
+        el.classList.remove('is-scrambling');
+        unlockWidth(el);
+        setAllChars(spans, graphemes);
+      },
+    };
+  }
+
+  // ── Public API ──
+
+  /**
+   * Initialize a text scramble effect on an element.
+   *
+   * @param {HTMLElement} el - Target element
+   * @param {Object} [opts]
+   * @param {string}  [opts.text] - Final text (default: el.textContent)
+   * @param {string}  [opts.charset] - Glyph charset (default: DEFAULT_CHARSET)
+   * @param {string}  [opts.mode] - 'mount' | 'pointer' | 'both' (default: 'both')
+   * @param {number}  [opts.pointerRadius] - Chars on each side to affect (default: 1)
+   * @param {number}  [opts.settleMs] - Settle time after cursor leaves (default: 400)
+   * @param {string}  [opts.sweepDirection] - 'ltr' | 'rtl' (default: 'ltr')
+   * @param {number}  [opts.mountDuration] - Mount animation ms (default: 2000)
+   * @returns {{ destroy: () => void, setText: (t: string) => void }}
+   */
+  function init(el, opts = {}) {
+    if (!(el instanceof HTMLElement)) {
+      throw new Error('TextScramble.init: target must be an HTMLElement');
+    }
+
+    const charset = opts.charset || DEFAULT_CHARSET;
+    const mode = opts.mode || DEFAULT_MODE;
+    const pointerRadius = opts.pointerRadius ?? DEFAULT_POINTER_RADIUS;
+    const settleMs = opts.settleMs ?? DEFAULT_SETTLE_MS;
+    const sweepDir = opts.sweepDirection || DEFAULT_SWEEP_DIR;
+    const mountDuration = opts.mountDuration ?? DEFAULT_MOUNT_DURATION;
+
+    const graphemes = getGraphemes(opts.text !== undefined ? opts.text : el.textContent || '');
+
+    const reduced = prefersReducedMotion();
+    const doMount = mode === 'mount' || mode === 'both';
+    const doPointer = mode === 'pointer' || mode === 'both';
+
+    // Reduced motion: just render text, no effects
+    if (reduced) {
+      const spans = buildSpans(el, graphemes.length);
+      setAllChars(spans, graphemes);
+      return { destroy: () => {}, setText: () => {} };
+    }
+
+    el.classList.add('scramble-trigger');
+
+    let pointerCtrl = null;
+
+    if (doMount) {
+      applyA11y(el, true);
+      el.classList.add('is-scrambling');
+
+      runMountSweep(el, graphemes, charset, mountDuration, sweepDir).then(() => {
+        el.classList.remove('is-scrambling');
+        unlockWidth(el);
+        applyA11y(el, false);
+
+        // After mount, hand off to pointer mode
+        if (doPointer) {
+          // Rebuild spans fresh for pointer mode (mount sweeps may have different count)
+          pointerCtrl = runPointerMode(el, graphemes, charset, pointerRadius, settleMs);
+        }
+      });
+    } else if (doPointer) {
+      pointerCtrl = runPointerMode(el, graphemes, charset, pointerRadius, settleMs);
+    }
+
+    return {
+      destroy() {
+        if (pointerCtrl) pointerCtrl.destroy();
+        el.classList.remove('scramble-trigger', 'is-scrambling');
+        unlockWidth(el);
+        applyA11y(el, false);
+      },
+      setText(text) {
+        const newGraphemes = getGraphemes(text);
+        const spans = buildSpans(el, newGraphemes.length);
+        setAllChars(spans, newGraphemes);
+      },
+    };
+  }
+
+  // ── Backward compat shim ──
+
+  function scramble(el, options = {}) {
+    const charset = DEFAULT_CHARSET;
+    const duration = options.duration || DEFAULT_MOUNT_DURATION;
+    const dir = options.sweepDirection || DEFAULT_SWEEP_DIR;
+    const graphemes = getGraphemes(options.text !== undefined ? options.text : el.textContent || '');
+    return runMountSweep(el, graphemes, charset, duration, dir).then(() => undefined);
+  }
+
   class ScrambleSequence {
     constructor(el, options = {}) {
-      this.el = isHTMLElement(el)
-        ? el
-        : typeof document !== 'undefined'
-          ? document.querySelector(el)
-          : null;
-      if (!this.el) {
-        throw new Error('TextScramble.Sequence target element was not found');
+      if (!(el instanceof HTMLElement)) {
+        el = typeof document !== 'undefined' ? document.querySelector(el) : null;
       }
-      this.originalText = this.el.textContent;
+      if (!el) throw new Error('TextScramble.Sequence: target not found');
+      this.el = el;
+      this.originalText = el.textContent;
       this.options = options;
       this.running = false;
       this.interrupted = false;
       this.queue = [];
     }
 
-    /** Add a text change to the animation queue */
     add(text, opts = {}) {
       this.queue.push({ text, ...opts });
       if (!this.running) this._run();
       return this;
     }
 
-    /** Reset to original text */
     reset(opts = {}) {
       this.queue = [];
       this.add(this.originalText, opts);
       return this;
     }
 
-    /** Stop and clear queue */
     stop() {
       this.interrupted = true;
       this.running = false;
       this.queue = [];
-      cancelActive(this.el);
       this.el.textContent = this.originalText;
       return this;
     }
@@ -291,24 +376,21 @@ const TextScramble = (() => {
     async _run() {
       this.running = true;
       this.interrupted = false;
-
       while (this.queue.length > 0 && !this.interrupted) {
         const item = this.queue.shift();
-        const result = await runScramble(this.el, { ...this.options, ...item });
-        if (result.cancelled) break;
+        await scramble(this.el, { ...this.options, ...item });
       }
-
       this.running = false;
     }
   }
 
   return {
+    init,
     scramble,
-    Sequence: ScrambleSequence,
+    Sequence,
   };
 })();
 
-// Export for module systems, or attach to window for scripts
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = TextScramble;
 } else {

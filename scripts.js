@@ -30,66 +30,22 @@
     });
 })();
 
-// ── Text scramble on page load + hover ──
+// ── Text scramble on page load + pointer hover (Spec v2) ──
 (function () {
     const h1 = document.querySelector('header h1');
-    if (!h1 || !window.TextScramble) return;
+    if (!h1 || !window.TextScramble || !window.TextScramble.init) return;
 
-    // Respect reduced-motion preference
-    const motionQuery = window.matchMedia
-        ? window.matchMedia('(prefers-reduced-motion: reduce)')
-        : { matches: false };
-    if (motionQuery.matches) return;
-
-    const { scramble, Sequence } = window.TextScramble;
-    const originalText = h1.textContent;
-    h1.classList.add('scramble-trigger');
-
-    // Scramble on page load — full duration reveal
-    const loadSeq = new Sequence(h1, {
-        duration: 3000,
-        revealStart: 0.05,
-        revealEnd: 0.9,
+    const controller = window.TextScramble.init(h1, {
+        text: h1.textContent,
+        mode: 'both',
+        mountDuration: 3000,
+        sweepDirection: 'ltr',
+        pointerRadius: 1,
+        settleMs: 400,
     });
-    loadSeq.add(originalText);
 
-    // Scramble on hover — quick re-scramble
-    function runHoverScramble() {
-        scramble(h1, {
-            text: originalText,
-            duration: 1200,
-            revealStart: 0,
-            revealEnd: 0.85,
-        });
-    }
-
-    h1.addEventListener('mouseenter', runHoverScramble);
-
-    function handleReducedMotionChange(e) {
-        if (e.matches) {
-            loadSeq.stop();
-            h1.textContent = originalText;
-            h1.classList.remove('scramble-trigger', 'is-scrambling');
-        }
-    }
-
-    if (motionQuery.addEventListener) {
-        motionQuery.addEventListener('change', handleReducedMotionChange);
-    } else if (motionQuery.addListener) {
-        motionQuery.addListener(handleReducedMotionChange);
-    }
-
+    // Clean up on page unload
     window.addEventListener('pagehide', function () {
-        loadSeq.stop();
-        h1.removeEventListener('mouseenter', runHoverScramble);
-
-        if (motionQuery.removeEventListener) {
-            motionQuery.removeEventListener('change', handleReducedMotionChange);
-        } else if (motionQuery.removeListener) {
-            motionQuery.removeListener(handleReducedMotionChange);
-        }
+        controller.destroy();
     }, { once: true });
-
-    // Stop hover scramble if user mouses out mid-animation (let it finish)
-    // — no reset needed, it resolves to original text anyway
 })();

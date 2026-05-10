@@ -276,6 +276,16 @@ section h2 {
     font-variant-ligatures: none;
     text-rendering: geometricPrecision;
     user-select: none;
+    cursor: default;
+}
+
+.scramble-char {
+    display: inline-block;
+}
+
+.is-scrambling .scramble-char {
+    font-variant-ligatures: none;
+    text-rendering: geometricPrecision;
 }
 
 .scramble-anchor {
