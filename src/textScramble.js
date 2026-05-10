@@ -8,7 +8,11 @@ const TextScramble = (() => {
   const DEFAULT_CHARSET =
     '\u2593\u2592\u2591\u2588\u2584\u2580\u258c\u2590\u2502\u2500\u250c\u2510\u2514\u2518\u251c\u2524\u252c\u2534\u253c' +
     '\u2801\u2802\u2803\u2804\u2805\u2806\u2807\u2808\u2809\u280a\u280b\u280c\u280d\u280e\u280f' +
-    '0123456789';
+    '0123456789' +
+    '!@#%^&*()_+-=[]{}|;:,.<>?/~' +
+    'ÆØÅßðþ' +
+    'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン' +
+    '天地玄黄宇宙洪荒日月盈昃辰宿列张寒来暑往秋收冬藏';
 
   const DEFAULT_MOUNT_DURATION = 2000;
   const DEFAULT_POINTER_RADIUS = 1;
@@ -101,7 +105,7 @@ const TextScramble = (() => {
   function scheduleSweep(i, N, duration, direction) {
     const order = direction === 'ltr' ? i : N - 1 - i;
     const start = (order / N) * duration * 0.6;
-    return start;
+    return Math.max(start, duration * 0.03);
   }
 
   function runMountSweep(el, graphemes, charset, duration, direction) {
