@@ -30,19 +30,36 @@
     });
 })();
 
-// ── Text scramble on page load ──
+// ── Text scramble on page load + hover ──
 (function () {
     const h1 = document.querySelector('header h1');
     if (!h1 || !window.TextScramble) return;
 
     // Respect reduced-motion preference
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    if (prefersReduced) return; // skip animation entirely
+    if (prefersReduced) return;
 
     const { scramble, Sequence } = window.TextScramble;
+    const originalText = h1.textContent;
 
-    // Scramble the heading on load
-    const seq = new Sequence(h1, { duration: 3000, revealRate: 0.05 });
-    seq.add(h1.textContent);
+    // Scramble on page load — full duration reveal
+    const loadSeq = new Sequence(h1, {
+        duration: 3000,
+        revealStart: 0.05,
+        revealEnd: 0.9,
+    });
+    loadSeq.add(originalText);
+
+    // Scramble on hover — quick re-scramble
+    h1.addEventListener('mouseenter', function () {
+        scramble(h1, {
+            text: originalText,
+            duration: 1200,
+            revealStart: 0,
+            revealEnd: 0.85,
+        });
+    });
+
+    // Stop hover scramble if user mouses out mid-animation (let it finish)
+    // — no reset needed, it resolves to original text anyway
 })();

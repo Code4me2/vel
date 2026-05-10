@@ -36,8 +36,8 @@ const TextScramble = (() => {
    * @param {string} [options.text] - Final text (defaults to el.textContent)
    * @param {number} [options.duration] - Total animation duration in ms (default 800)
    * @param {string} [options.charSet] - Character set for scramble ('alpha'|'numeric'|'symbols'|'mixed')
-   * @param {number} [options.speed] - Frames between character changes (default 2)
-   * @param {number} [options.revealRate] - Fraction of chars revealed per frame (0-1, default 0.04)
+   * @param {number} [options.revealStart] - When to start revealing (0-1 of duration, default 0.05)
+   * @param {number} [options.revealEnd] - When reveal completes (0-1 of duration, default 0.9)
    * @param {boolean} [options.lockWidth] - Keep width stable (default true)
    * @returns {Promise<void>} Resolves when animation completes
    */
@@ -45,8 +45,8 @@ const TextScramble = (() => {
     text,
     duration = 800,
     charSet = 'mixed',
-    speed = 2,
-    revealRate = 0.04,
+    revealStart = 0.05,
+    revealEnd = 0.9,
     lockWidth: shouldLock = true,
   } = {}) {
     const chars = CHAR_SETS[charSet] || CHAR_SETS.mixed;
@@ -62,41 +62,43 @@ const TextScramble = (() => {
     const revealed = new Array(len).fill(false);
     const current = new Array(len).fill('').map(() => randomChar(chars));
 
-    let frames = 0;
-    const totalFrames = Math.max(Math.ceil(duration / (16.67 * speed)), 30);
+    // Pre-assign each character a reveal time (0-1 range) for smooth, predictable distribution
+    const revealTimes = new Array(len);
+    for (let i = 0; i < len; i++) {
+      revealTimes[i] = revealStart + Math.random() * (revealEnd - revealStart);
+    }
+
+    let startTime = null;
     let animId = null;
 
     return new Promise((resolve) => {
-      function step() {
-        frames++;
+      function step(timestamp) {
+        if (startTime === null) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+        const progress = Math.min(elapsed / duration, 1);
 
-        // Reveal characters progressively
-        const toReveal = Math.max(1, Math.ceil(len * revealRate));
-        for (let i = 0; i < toReveal && frames <= totalFrames; i++) {
-          // Find an unrevealed index (random position for organic feel)
-          const unrevealed = [];
-          for (let j = 0; j < len; j++) {
-            if (!revealed[j]) unrevealed.push(j);
+        // Reveal characters whose time has come
+        for (let i = 0; i < len; i++) {
+          if (!revealed[i] && progress >= revealTimes[i]) {
+            revealed[i] = true;
+            current[i] = target[i];
           }
-          if (unrevealed.length === 0) break;
-          const idx = unrevealed[Math.floor(Math.random() * unrevealed.length)];
-          revealed[idx] = true;
-          current[idx] = target[idx];
         }
 
-        // Cycle unrevealed characters
-        for (let i = 0; i < len; i++) {
-          if (!revealed[i]) {
-            current[i] = randomChar(chars);
+        // Cycle unrevealed characters every other frame for visual noise
+        if (Math.floor(elapsed / 50) !== Math.floor((elapsed - 16.67) / 50)) {
+          for (let i = 0; i < len; i++) {
+            if (!revealed[i]) {
+              current[i] = randomChar(chars);
+            }
           }
         }
 
         el.textContent = current.join('');
 
-        if (frames >= totalFrames) {
+        if (progress >= 1) {
           // Ensure all characters are revealed
           for (let i = 0; i < len; i++) {
-            revealed[i] = true;
             current[i] = target[i];
           }
           el.textContent = target.join('');
