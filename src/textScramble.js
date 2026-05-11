@@ -50,43 +50,35 @@ const TextScramble = (() => {
   // ── DOM: per-char spans (created once, updated in place) ──
 
   async function buildSpans(el, graphemes) {
-    // Ensure fonts are loaded before measuring char widths.
-    // Without this, fallback font widths are used and web font text
-    // overflows span containers (compressed/overlapping on init).
+    // Wait for fonts to load. Without this, fallback font widths are used.
     if (document.fonts && document.fonts.ready) {
       await document.fonts.ready.catch(() => {});
     }
 
-    // Measure each grapheme's rendered width so spans stay fixed
-    // regardless of which random char is displayed inside them.
-    const widths = new Array(graphemes.length);
-    const measurer = document.createElement('span');
-    const s = getComputedStyle(el);
-    measurer.style.cssText =
-      'position:absolute;visibility:hidden;white-space:nowrap;font:' +
-      s.font + ';letter-spacing:' + s.letterSpacing +
-      ';font-variant-ligatures:' + (s.fontVariantLigatures || '') + ';';
-    document.body.appendChild(measurer);
-
-    // rAF ensures paint has flushed after font swap
-    await new Promise(r => requestAnimationFrame(r));
-
-    for (let i = 0; i < graphemes.length; i++) {
-      measurer.textContent = isWhitespace(graphemes[i]) ? '\u00a0' : graphemes[i];
-      widths[i] = Math.ceil(measurer.getBoundingClientRect().width);
-    }
-    document.body.removeChild(measurer);
-
+    // Create spans with actual characters, insert them into the real element,
+    // then measure their widths. This is more reliable than a hidden measurer
+    // because the spans inherit the element's actual computed font styles.
     const frag = document.createDocumentFragment();
+    const spans = new Array(graphemes.length);
     for (let i = 0; i < graphemes.length; i++) {
       const span = document.createElement('span');
       span.className = 'scramble-char';
-      span.style.width = widths[i] + 'px';
+      span.textContent = isWhitespace(graphemes[i]) ? '\u00a0' : graphemes[i];
+      spans[i] = span;
       frag.appendChild(span);
     }
     el.textContent = '';
     el.appendChild(frag);
-    return el.querySelectorAll('.scramble-char');
+
+    // Force reflow so spans are laid out with the real font
+    void el.offsetHeight;
+
+    // Lock each span's measured width
+    for (let i = 0; i < spans.length; i++) {
+      spans[i].style.width = Math.ceil(spans[i].getBoundingClientRect().width) + 'px';
+    }
+
+    return spans;
   }
 
   function displayChar(ch) {
