@@ -316,7 +316,7 @@ header > .scramble-trigger {
     .grid {
         display: flex;
         flex-direction: column;
-        gap: 36px;
+        gap: 20px;
     }
 
     /* Dissolve column wrappers so sections can be reordered independently */

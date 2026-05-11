@@ -57,14 +57,12 @@
         });
     }
 
-    // Scramble section titles (Experience, Open Source Contributions, Projects)
+    // Scramble section titles — pointer hover only
     const sectionTitles = document.querySelectorAll('section h2');
-    sectionTitles.forEach((h2, i) => {
+    sectionTitles.forEach((h2) => {
         window.TextScramble.init(h2, {
             text: h2.textContent,
-            mode: 'both',
-            mountDuration: 1500 + i * 300,
-            sweepDirection: 'ltr',
+            mode: 'pointer',
             pointerRadius: 1,
             settleMs: 400,
         });
