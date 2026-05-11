@@ -57,6 +57,19 @@
         });
     }
 
+    // Scramble section titles (Experience, Open Source Contributions, Projects)
+    const sectionTitles = document.querySelectorAll('section h2');
+    sectionTitles.forEach((h2, i) => {
+        window.TextScramble.init(h2, {
+            text: h2.textContent,
+            mode: 'both',
+            mountDuration: 1500 + i * 300,
+            sweepDirection: 'ltr',
+            pointerRadius: 1,
+            settleMs: 400,
+        });
+    });
+
     // Clean up on page unload
     window.addEventListener('pagehide', function () {
         controller.destroy();
