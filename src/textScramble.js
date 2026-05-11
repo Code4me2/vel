@@ -50,28 +50,45 @@ const TextScramble = (() => {
   // ── DOM: per-char spans (created once, updated in place) ──
 
   function measureCharWidths(graphemes, el) {
-    const widths = new Array(graphemes.length);
-    const measurer = document.createElement('span');
-    // Copy font properties from el so measurements match
-    const s = getComputedStyle(el);
-    measurer.style.position = 'absolute';
-    measurer.style.visibility = 'hidden';
-    measurer.style.whiteSpace = 'nowrap';
-    measurer.style.font = s.font;
-    measurer.style.letterSpacing = s.letterSpacing;
-    measurer.style.fontVariantLigatures = s.fontVariantLigatures || '';
-    document.body.appendChild(measurer);
-    for (let i = 0; i < graphemes.length; i++) {
-      measurer.textContent = displayChar(graphemes[i]);
-      widths[i] = Math.ceil(measurer.getBoundingClientRect().width);
+    // Wait for fonts to load so measurements match final rendered widths.
+    // Without this, fallback font widths are used and web font text
+    // overflows its span containers (compressed/overlapping on init).
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.catch(() => {});
     }
-    document.body.removeChild(measurer);
-    return widths;
+    return measureCharWidthsSync(graphemes, el);
   }
 
-  function buildSpans(el, graphemes) {
+  function measureCharWidthsSync(graphemes, el) {
+    return new Promise((resolve) => {
+      const widths = new Array(graphemes.length);
+      const measurer = document.createElement('span');
+      const s = getComputedStyle(el);
+      measurer.style.position = 'absolute';
+      measurer.style.visibility = 'hidden';
+      measurer.style.whiteSpace = 'nowrap';
+      measurer.style.font = s.font;
+      measurer.style.letterSpacing = s.letterSpacing;
+      measurer.style.fontVariantLigatures = s.fontVariantLigatures || '';
+      document.body.appendChild(measurer);
+
+      function doMeasure() {
+        for (let i = 0; i < graphemes.length; i++) {
+          measurer.textContent = displayChar(graphemes[i]);
+          widths[i] = Math.ceil(measurer.getBoundingClientRect().width);
+        }
+        document.body.removeChild(measurer);
+        resolve(widths);
+      }
+
+      // Use requestAnimationFrame to ensure paint has happened after font load
+      requestAnimationFrame(doMeasure);
+    });
+  }
+
+  async function buildSpans(el, graphemes) {
     const count = graphemes.length;
-    const widths = measureCharWidths(graphemes, el);
+    const widths = await measureCharWidths(graphemes, el);
     const frag = document.createDocumentFragment();
     for (let i = 0; i < count; i++) {
       const span = document.createElement('span');
@@ -132,16 +149,16 @@ const TextScramble = (() => {
     return Math.max(start, duration * 0.03);
   }
 
-  function runMountSweep(el, graphemes, charset, duration, direction) {
+  async function runMountSweep(el, graphemes, charset, duration, direction) {
     const N = graphemes.length;
     if (N === 0 || duration === 0) {
-      const spans = buildSpans(el, graphemes);
+      const spans = await buildSpans(el, graphemes);
       setAllChars(spans, graphemes);
-      return Promise.resolve();
+      return;
     }
 
     // Create spans once
-    const spans = buildSpans(el, graphemes);
+    const spans = await buildSpans(el, graphemes);
 
     // Pre-compute reveal times
     const revealAt = graphemes.map((_, i) => scheduleSweep(i, N, duration, direction));
@@ -197,12 +214,12 @@ const TextScramble = (() => {
 
   // ── Pointer-driven mode ──
 
-  function runPointerMode(el, graphemes, charset, pointerRadius, settleMs) {
+  async function runPointerMode(el, graphemes, charset, pointerRadius, settleMs) {
     const N = graphemes.length;
     if (N === 0) return { destroy: () => {} };
 
     // Create spans once
-    const spans = buildSpans(el, graphemes);
+    const spans = await buildSpans(el, graphemes);
     setAllChars(spans, graphemes);
 
     // Per-char state: timestamp of last touch (0 = null/unset)
@@ -310,9 +327,9 @@ const TextScramble = (() => {
    * @param {number}  [opts.settleMs] - Settle time after cursor leaves (default: 400)
    * @param {string}  [opts.sweepDirection] - 'ltr' | 'rtl' (default: 'ltr')
    * @param {number}  [opts.mountDuration] - Mount animation ms (default: 2000)
-   * @returns {{ destroy: () => void, setText: (t: string) => void }}
+   * @returns {Promise<{ destroy: () => void, setText: (t: string) => Promise<void> }>}
    */
-  function init(el, opts = {}) {
+  async function init(el, opts = {}) {
     if (!(el instanceof HTMLElement)) {
       throw new Error('TextScramble.init: target must be an HTMLElement');
     }
@@ -332,9 +349,9 @@ const TextScramble = (() => {
 
     // Reduced motion: just render text, no effects
     if (reduced) {
-      const spans = buildSpans(el, graphemes);
+      const spans = await buildSpans(el, graphemes);
       setAllChars(spans, graphemes);
-      return { destroy: () => {}, setText: () => {} };
+      return { destroy: () => {}, setText: async () => {} };
     }
 
     el.classList.add('scramble-trigger');
@@ -345,19 +362,18 @@ const TextScramble = (() => {
       applyA11y(el, true);
       el.classList.add('is-scrambling');
 
-      runMountSweep(el, graphemes, charset, mountDuration, sweepDir).then(() => {
-        el.classList.remove('is-scrambling');
-        unlockWidth(el);
-        applyA11y(el, false);
+      await runMountSweep(el, graphemes, charset, mountDuration, sweepDir);
 
-        // After mount, hand off to pointer mode
-        if (doPointer) {
-          // Rebuild spans fresh for pointer mode (mount sweeps may have different count)
-          pointerCtrl = runPointerMode(el, graphemes, charset, pointerRadius, settleMs);
-        }
-      });
+      el.classList.remove('is-scrambling');
+      unlockWidth(el);
+      applyA11y(el, false);
+
+      // After mount, hand off to pointer mode
+      if (doPointer) {
+        pointerCtrl = await runPointerMode(el, graphemes, charset, pointerRadius, settleMs);
+      }
     } else if (doPointer) {
-      pointerCtrl = runPointerMode(el, graphemes, charset, pointerRadius, settleMs);
+      pointerCtrl = await runPointerMode(el, graphemes, charset, pointerRadius, settleMs);
     }
 
     return {
@@ -367,9 +383,9 @@ const TextScramble = (() => {
         unlockWidth(el);
         applyA11y(el, false);
       },
-      setText(text) {
+      async setText(text) {
         const newGraphemes = getGraphemes(text);
-        const spans = buildSpans(el, newGraphemes.length);
+        const spans = await buildSpans(el, newGraphemes);
         setAllChars(spans, newGraphemes);
       },
     };
