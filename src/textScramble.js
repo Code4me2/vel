@@ -49,48 +49,36 @@ const TextScramble = (() => {
 
   // ── DOM: per-char spans (created once, updated in place) ──
 
-  function measureCharWidths(graphemes, el) {
-    // Wait for fonts to load so measurements match final rendered widths.
-    // Without this, fallback font widths are used and web font text
-    // overflows its span containers (compressed/overlapping on init).
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.catch(() => {});
-    }
-    return measureCharWidthsSync(graphemes, el);
-  }
-
-  function measureCharWidthsSync(graphemes, el) {
-    return new Promise((resolve) => {
-      const widths = new Array(graphemes.length);
-      const measurer = document.createElement('span');
-      const s = getComputedStyle(el);
-      measurer.style.position = 'absolute';
-      measurer.style.visibility = 'hidden';
-      measurer.style.whiteSpace = 'nowrap';
-      measurer.style.font = s.font;
-      measurer.style.letterSpacing = s.letterSpacing;
-      measurer.style.fontVariantLigatures = s.fontVariantLigatures || '';
-      document.body.appendChild(measurer);
-
-      function doMeasure() {
-        for (let i = 0; i < graphemes.length; i++) {
-          measurer.textContent = displayChar(graphemes[i]);
-          widths[i] = Math.ceil(measurer.getBoundingClientRect().width);
-        }
-        document.body.removeChild(measurer);
-        resolve(widths);
-      }
-
-      // Use requestAnimationFrame to ensure paint has happened after font load
-      requestAnimationFrame(doMeasure);
-    });
-  }
-
   async function buildSpans(el, graphemes) {
-    const count = graphemes.length;
-    const widths = await measureCharWidths(graphemes, el);
+    // Ensure fonts are loaded before measuring char widths.
+    // Without this, fallback font widths are used and web font text
+    // overflows span containers (compressed/overlapping on init).
+    if (document.fonts && document.fonts.ready) {
+      await document.fonts.ready.catch(() => {});
+    }
+
+    // Measure each grapheme's rendered width so spans stay fixed
+    // regardless of which random char is displayed inside them.
+    const widths = new Array(graphemes.length);
+    const measurer = document.createElement('span');
+    const s = getComputedStyle(el);
+    measurer.style.cssText =
+      'position:absolute;visibility:hidden;white-space:nowrap;font:' +
+      s.font + ';letter-spacing:' + s.letterSpacing +
+      ';font-variant-ligatures:' + (s.fontVariantLigatures || '') + ';';
+    document.body.appendChild(measurer);
+
+    // rAF ensures paint has flushed after font swap
+    await new Promise(r => requestAnimationFrame(r));
+
+    for (let i = 0; i < graphemes.length; i++) {
+      measurer.textContent = isWhitespace(graphemes[i]) ? '\u00a0' : graphemes[i];
+      widths[i] = Math.ceil(measurer.getBoundingClientRect().width);
+    }
+    document.body.removeChild(measurer);
+
     const frag = document.createDocumentFragment();
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < graphemes.length; i++) {
       const span = document.createElement('span');
       span.className = 'scramble-char';
       span.style.width = widths[i] + 'px';
