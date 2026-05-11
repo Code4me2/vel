@@ -309,6 +309,30 @@ header > .scramble-trigger {
     }
 }
 
+/* ── Copy Toast ── */
+.copy-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    background: var(--text);
+    color: var(--bg);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.85em;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 2000;
+}
+
+.copy-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
 /* ── Responsive ── */
 @media (max-width: 820px) {
     .grid {
@@ -342,6 +366,15 @@ header > .scramble-trigger {
 
     .tagline {
         font-size: 0.68em;
+        white-space: nowrap;
+    }
+
+    section h2 {
+        white-space: nowrap;
+    }
+
+    .entry .role {
+        white-space: nowrap;
     }
 
     .left-column .entry h3 {

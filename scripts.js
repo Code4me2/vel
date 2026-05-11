@@ -30,6 +30,39 @@
     });
 })();
 
+// ── Copy email to clipboard ──
+(function () {
+    const btn = document.getElementById('copy-email');
+    if (!btn) return;
+
+    btn.addEventListener('click', async function () {
+        try {
+            await navigator.clipboard.writeText('velvetmoon222999@gmail.com');
+        } catch {
+            // Fallback
+            const ta = document.createElement('textarea');
+            ta.value = 'velvetmoon222999@gmail.com';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+        }
+
+        // Show toast
+        let toast = document.getElementById('copy-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'copy-toast';
+            toast.className = 'copy-toast';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = 'Email copied';
+        toast.classList.add('show');
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(() => toast.classList.remove('show'), 1500);
+    });
+})();
+
 // ── Text scramble on page load + pointer hover (Spec v2) ──
 (function () {
     const h1 = document.querySelector('header h1');

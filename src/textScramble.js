@@ -198,10 +198,18 @@ const TextScramble = (() => {
     const N = graphemes.length;
     if (N === 0) return { destroy: () => {} };
 
-    // Lazy init: don't build spans until first pointer enter to avoid
-    // any visible layout twitch on page load.
-    let spans = null;
-    let initialized = false;
+    // Build spans immediately to avoid lazy-init race condition:
+    // if we wait for first pointerenter to build spans, the element
+    // is hidden during build, pointerenter already fired, and
+    // pointermove doesn't fire again if cursor is still — so nothing scrambles.
+    // Instead: hide with opacity+visibility, build, restore.
+    el.style.opacity = '0';
+    el.style.visibility = 'hidden';
+    const spans = await buildSpans(el, graphemes);
+    setAllChars(spans, graphemes);
+    el.style.opacity = '';
+    el.style.visibility = '';
+
     let frameId = null;
     let running = true;
     const lastTouched = new Float64Array(N);
@@ -210,22 +218,8 @@ const TextScramble = (() => {
     const frameInterval = 33;
     let lastFrame = 0;
 
-    async function ensureSpans() {
-      if (initialized) return;
-      initialized = true;
-      el.style.visibility = 'hidden';
-      spans = await buildSpans(el, graphemes);
-      setAllChars(spans, graphemes);
-      await new Promise(r => requestAnimationFrame(r));
-      el.style.visibility = '';
-    }
-
-    function onPointerEnter() {
-      ensureSpans();
-    }
-
     function onPointerMove(e) {
-      if (!running || !spans) return;
+      if (!running) return;
       activeIndices.clear();
 
       for (let i = 0; i < spans.length; i++) {
@@ -245,7 +239,7 @@ const TextScramble = (() => {
     }
 
     function tick(now) {
-      if (!running || !spans) return;
+      if (!running) return;
       if (now - lastFrame < frameInterval) {
         frameId = requestAnimationFrame(tick);
         return;
@@ -277,26 +271,23 @@ const TextScramble = (() => {
       frameId = requestAnimationFrame(tick);
     }
 
-    el.addEventListener('pointerenter', onPointerEnter, { passive: true });
     el.addEventListener('pointermove', onPointerMove, { passive: true });
     el.addEventListener('pointerleave', onPointerLeave, { passive: true });
 
     lockWidth(el, graphemes.join(''));
     el.classList.add('is-scrambling');
 
-    // Start the rAF loop — it stays idle until spans exist
     frameId = requestAnimationFrame(tick);
 
     return {
       destroy() {
         running = false;
         cancelAnimationFrame(frameId);
-        el.removeEventListener('pointerenter', onPointerEnter);
         el.removeEventListener('pointermove', onPointerMove);
         el.removeEventListener('pointerleave', onPointerLeave);
         el.classList.remove('is-scrambling');
         unlockWidth(el);
-        if (spans) setAllChars(spans, graphemes);
+        setAllChars(spans, graphemes);
       },
     };
   }
