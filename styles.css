@@ -357,7 +357,7 @@ header > .scramble-trigger {
     .projects { order: 4; }
 
     .wrapper {
-        padding: 60px 20px 60px;
+        padding: 60px 16px 60px 16px;
     }
 
     header h1 {
@@ -365,8 +365,8 @@ header > .scramble-trigger {
     }
 
     .tagline {
-        font-size: clamp(0.5em, 2.8vw, 0.68em);
-        letter-spacing: 1px;
+        font-size: clamp(0.38em, 2.2vw, 0.55em);
+        letter-spacing: 0;
         white-space: nowrap;
     }
 
