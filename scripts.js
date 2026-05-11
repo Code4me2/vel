@@ -60,6 +60,7 @@
     // Scramble section titles — pointer hover only
     const sectionTitles = document.querySelectorAll('section h2');
     sectionTitles.forEach((h2) => {
+        h2.style.position = 'relative';
         window.TextScramble.init(h2, {
             text: h2.textContent,
             mode: 'pointer',

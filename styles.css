@@ -289,8 +289,6 @@ header > .scramble-trigger {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    overflow: hidden;
-    line-height: 1;
 }
 
 .is-scrambling .scramble-char {
@@ -316,7 +314,11 @@ header > .scramble-trigger {
     .grid {
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 0;
+    }
+
+    section {
+        margin-bottom: 8px;
     }
 
     /* Dissolve column wrappers so sections can be reordered independently */

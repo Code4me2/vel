@@ -198,9 +198,17 @@ const TextScramble = (() => {
     const N = graphemes.length;
     if (N === 0) return { destroy: () => {} };
 
+    // Hide during span swap to avoid visible layout twitch
+    const prevVisibility = el.style.visibility;
+    el.style.visibility = 'hidden';
+
     // Create spans once
     const spans = await buildSpans(el, graphemes);
     setAllChars(spans, graphemes);
+
+    // Restore visibility after a frame so spans are measured
+    await new Promise(r => requestAnimationFrame(r));
+    el.style.visibility = prevVisibility;
 
     // Per-char state: timestamp of last touch (0 = null/unset)
     const lastTouched = new Float64Array(N);
