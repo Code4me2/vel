@@ -198,36 +198,39 @@ const TextScramble = (() => {
     const N = graphemes.length;
     if (N === 0) return { destroy: () => {} };
 
-    // Hide during span swap to avoid visible layout twitch
-    const prevVisibility = el.style.visibility;
-    el.style.visibility = 'hidden';
-
-    // Create spans once
-    const spans = await buildSpans(el, graphemes);
-    setAllChars(spans, graphemes);
-
-    // Restore visibility after a frame so spans are measured
-    await new Promise(r => requestAnimationFrame(r));
-    el.style.visibility = prevVisibility;
-
-    // Per-char state: timestamp of last touch (0 = null/unset)
+    // Lazy init: don't build spans until first pointer enter to avoid
+    // any visible layout twitch on page load.
+    let spans = null;
+    let initialized = false;
+    let frameId = null;
+    let running = true;
     const lastTouched = new Float64Array(N);
     const activeIndices = new Set();
     let frame = 0;
-    let running = true;
-    let frameId = null;
-    const frameInterval = 33; // ~30fps
+    const frameInterval = 33;
     let lastFrame = 0;
 
+    async function ensureSpans() {
+      if (initialized) return;
+      initialized = true;
+      el.style.visibility = 'hidden';
+      spans = await buildSpans(el, graphemes);
+      setAllChars(spans, graphemes);
+      await new Promise(r => requestAnimationFrame(r));
+      el.style.visibility = '';
+    }
+
+    function onPointerEnter() {
+      ensureSpans();
+    }
+
     function onPointerMove(e) {
-      if (!running) return;
+      if (!running || !spans) return;
       activeIndices.clear();
 
-      // Find which span is under pointer
       for (let i = 0; i < spans.length; i++) {
         const r = spans[i].getBoundingClientRect();
         if (e.clientX >= r.left && e.clientX <= r.right) {
-          // Hit found — add this and neighbors
           for (let d = -pointerRadius; d <= pointerRadius; d++) {
             const j = i + d;
             if (j >= 0 && j < N) activeIndices.add(j);
@@ -242,35 +245,29 @@ const TextScramble = (() => {
     }
 
     function tick(now) {
-      if (!running) return;
+      if (!running || !spans) return;
       if (now - lastFrame < frameInterval) {
         frameId = requestAnimationFrame(tick);
         return;
       }
       lastFrame = now;
 
-      // Refresh timestamps for active indices every frame —
-      // critical: stationary cursors keep cycling
       for (const i of activeIndices) {
         lastTouched[i] = now;
       }
 
-      // Update each character
       for (let i = 0; i < N; i++) {
         const t = lastTouched[i];
 
         if (t === 0) {
-          // Settled — show final char
           if (spans[i].textContent !== displayChar(graphemes[i])) {
             spans[i].textContent = displayChar(graphemes[i]);
           }
         } else if (now - t < settleMs) {
-          // Cycling — show random glyph
           if (!isWhitespace(graphemes[i])) {
             spans[i].textContent = randomChar(charset);
           }
         } else {
-          // Just expired — settle back
           lastTouched[i] = 0;
           spans[i].textContent = displayChar(graphemes[i]);
         }
@@ -280,23 +277,26 @@ const TextScramble = (() => {
       frameId = requestAnimationFrame(tick);
     }
 
+    el.addEventListener('pointerenter', onPointerEnter, { passive: true });
     el.addEventListener('pointermove', onPointerMove, { passive: true });
     el.addEventListener('pointerleave', onPointerLeave, { passive: true });
 
     lockWidth(el, graphemes.join(''));
     el.classList.add('is-scrambling');
 
+    // Start the rAF loop — it stays idle until spans exist
     frameId = requestAnimationFrame(tick);
 
     return {
       destroy() {
         running = false;
         cancelAnimationFrame(frameId);
+        el.removeEventListener('pointerenter', onPointerEnter);
         el.removeEventListener('pointermove', onPointerMove);
         el.removeEventListener('pointerleave', onPointerLeave);
         el.classList.remove('is-scrambling');
         unlockWidth(el);
-        setAllChars(spans, graphemes);
+        if (spans) setAllChars(spans, graphemes);
       },
     };
   }
