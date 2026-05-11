@@ -125,8 +125,6 @@ body {
 /* ── Header ── */
 header {
     margin-bottom: 40px;
-    container-type: inline-size;
-    container-name: header-container;
 }
 
 header h1 {
@@ -144,15 +142,6 @@ header h1 {
     font-weight: 500;
     letter-spacing: 2px;
     text-transform: uppercase;
-}
-
-/* Shrink tagline to fit container width on mobile */
-@container header-container (max-width: 500px) {
-    .tagline {
-        font-size: calc(0.45em + 100cqi * 0.001);
-        white-space: nowrap;
-        overflow: hidden;
-    }
 }
 
 /* ── Two-column grid ── */
@@ -376,7 +365,8 @@ header > .scramble-trigger {
     }
 
     .tagline {
-        font-size: 0.68em;
+        font-size: clamp(0.5em, 2.8vw, 0.68em);
+        letter-spacing: 1px;
         white-space: nowrap;
     }
 
