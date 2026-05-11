@@ -290,6 +290,7 @@ header > .scramble-trigger {
     justify-content: center;
     flex-shrink: 0;
     overflow: hidden;
+    line-height: 1;
 }
 
 .is-scrambling .scramble-char {
@@ -307,10 +308,6 @@ header > .scramble-trigger {
 @media (hover: hover) and (pointer: fine) {
     .scramble-trigger {
         transition: color 0.2s ease;
-    }
-
-    .scramble-trigger:hover {
-        color: var(--accent);
     }
 }
 
