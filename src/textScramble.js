@@ -202,12 +202,16 @@ const TextScramble = (() => {
     // is hidden during build, pointerenter already fired, and
     // pointermove doesn't fire again if cursor is still — so nothing scrambles.
     // Instead: hide with opacity+visibility, build, restore.
+    let spans;
     el.style.opacity = '0';
     el.style.visibility = 'hidden';
-    const spans = await buildSpans(el, graphemes);
-    setAllChars(spans, graphemes);
-    el.style.opacity = '';
-    el.style.visibility = '';
+    try {
+      spans = await buildSpans(el, graphemes);
+      setAllChars(spans, graphemes);
+    } finally {
+      el.style.opacity = '';
+      el.style.visibility = '';
+    }
 
     let frameId = null;
     let running = true;
@@ -319,22 +323,74 @@ const TextScramble = (() => {
     const sweepDir = opts.sweepDirection || DEFAULT_SWEEP_DIR;
     const mountDuration = opts.mountDuration ?? DEFAULT_MOUNT_DURATION;
 
-    const graphemes = getGraphemes(opts.text !== undefined ? opts.text : el.textContent || '');
+    let graphemes = getGraphemes(opts.text !== undefined ? opts.text : el.textContent || '');
 
     const reduced = prefersReducedMotion();
     const doMount = mode === 'mount' || mode === 'both';
     const doPointer = mode === 'pointer' || mode === 'both';
 
-    // Reduced motion: just render text, no effects
+    // Reduced motion: render text without animation, but keep the API functional.
     if (reduced) {
+      let destroyed = false;
+      let setTextQueue = Promise.resolve();
       const spans = await buildSpans(el, graphemes);
       setAllChars(spans, graphemes);
-      return { destroy: () => {}, setText: async () => {} };
+
+      async function applyReducedText(text) {
+        if (destroyed) return;
+        graphemes = getGraphemes(text);
+        const nextSpans = await buildSpans(el, graphemes);
+        if (!destroyed) setAllChars(nextSpans, graphemes);
+      }
+
+      return {
+        destroy() {
+          destroyed = true;
+          unlockWidth(el);
+          applyA11y(el, false);
+        },
+        setText(text) {
+          setTextQueue = setTextQueue.catch(() => {}).then(() => applyReducedText(text));
+          return setTextQueue;
+        },
+      };
     }
 
     el.classList.add('scramble-trigger');
 
     let pointerCtrl = null;
+    let destroyed = false;
+    let setTextQueue = Promise.resolve();
+
+    async function applyText(text) {
+      if (destroyed) return;
+
+      if (pointerCtrl) {
+        pointerCtrl.destroy();
+        pointerCtrl = null;
+      }
+
+      graphemes = getGraphemes(text);
+
+      if (graphemes.length === 0) {
+        const spans = await buildSpans(el, graphemes);
+        if (!destroyed) setAllChars(spans, graphemes);
+        return;
+      }
+
+      if (doPointer) {
+        const nextPointerCtrl = await runPointerMode(el, graphemes, charset, pointerRadius, settleMs);
+        if (destroyed) {
+          nextPointerCtrl.destroy();
+          return;
+        }
+        pointerCtrl = nextPointerCtrl;
+        return;
+      }
+
+      const spans = await buildSpans(el, graphemes);
+      if (!destroyed) setAllChars(spans, graphemes);
+    }
 
     if (doMount) {
       applyA11y(el, true);
@@ -356,15 +412,16 @@ const TextScramble = (() => {
 
     return {
       destroy() {
+        destroyed = true;
         if (pointerCtrl) pointerCtrl.destroy();
+        pointerCtrl = null;
         el.classList.remove('scramble-trigger', 'is-scrambling');
         unlockWidth(el);
         applyA11y(el, false);
       },
-      async setText(text) {
-        const newGraphemes = getGraphemes(text);
-        const spans = await buildSpans(el, newGraphemes);
-        setAllChars(spans, newGraphemes);
+      setText(text) {
+        setTextQueue = setTextQueue.catch(() => {}).then(() => applyText(text));
+        return setTextQueue;
       },
     };
   }

@@ -21,7 +21,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script>
         (function(){
-            var saved = localStorage.getItem('theme');
+            var saved = null;
+            try { saved = localStorage.getItem('theme'); } catch (e) {}
+            if (saved !== 'light' && saved !== 'dark') saved = null;
             if (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                 document.documentElement.setAttribute('data-theme','dark');
             } else if (saved) {
@@ -34,13 +36,13 @@
     <!-- Top bar — sticky -->
     <div class="topbar">
         <div class="topbar-links">
-            <a href="https://github.com/Code4me2" target="_blank" class="topbar-link">GitHub</a>
-            <a href="https://huggingface.co/Code4me2" target="_blank" class="topbar-link">Hugging Face</a>
-            <a href="https://www.kaggle.com/Code4me2" target="_blank" class="topbar-link">Kaggle</a>
+            <a href="https://github.com/Code4me2" target="_blank" rel="noopener noreferrer" class="topbar-link">GitHub</a>
+            <a href="https://huggingface.co/Code4me2" target="_blank" rel="noopener noreferrer" class="topbar-link">Hugging Face</a>
+            <a href="https://www.kaggle.com/Code4me2" target="_blank" rel="noopener noreferrer" class="topbar-link">Kaggle</a>
             <a href="https://code4me2.github.io/blog/" class="topbar-link">Blog</a>
-            <button id="copy-email" class="topbar-link" style="background:none;border:none;cursor:pointer;" title="Copy email to clipboard">Email</button>
+            <button id="copy-email" class="topbar-link email-button" type="button" title="Copy email to clipboard">Email</button>
         </div>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark mode">
             <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
             <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         </button>
@@ -60,12 +62,12 @@
                 <section>
                     <h2>Experience</h2>
                     <div class="entry">
-                        <h3><a href="https://www.reichmanjorgensen.com/who-we-are" target="_blank">RJLF LLP</a></h3>
+                        <h3><a href="https://www.reichmanjorgensen.com/who-we-are" target="_blank" rel="noopener noreferrer">RJLF LLP</a></h3>
                         <p class="role">Member of Technical Staff · 2025–2026</p>
                         <p>Building E-Discovery Automation, Case Management Ontology platform, and source code analysis tooling.</p>
                     </div>
                     <div class="entry">
-                        <h3><a href="https://www.ccsf.edu" target="_blank">City College of San Francisco</a></h3>
+                        <h3><a href="https://www.ccsf.edu" target="_blank" rel="noopener noreferrer">City College of San Francisco</a></h3>
                         <p class="role">Teaching Assistant — Introductory Python · 2024</p>
                         <p>Helping students learn programming fundamentals, debugging, and computational thinking.</p>
                     </div>
@@ -78,19 +80,19 @@
                 <section>
                     <h2>Open Source Contributions</h2>
                     <div class="entry">
-                        <h3><a href="https://github.com/vllm-project/vllm" target="_blank">vLLM</a> <a href="https://github.com/vllm-project/vllm" target="_blank" class="link-arrow">→</a></h3>
+                        <h3><a href="https://github.com/vllm-project/vllm" target="_blank" rel="noopener noreferrer">vLLM</a> <a href="https://github.com/vllm-project/vllm" target="_blank" rel="noopener noreferrer" class="link-arrow">→</a></h3>
                         <p>Contributor to the high-throughput LLM inference engine with PagedAttention — powering most open-source LLM serving.</p>
                     </div>
                     <div class="entry">
-                        <h3><a href="https://github.com/ollama/ollama" target="_blank">Ollama</a> <a href="https://github.com/ollama/ollama" target="_blank" class="link-arrow">→</a></h3>
+                        <h3><a href="https://github.com/ollama/ollama" target="_blank" rel="noopener noreferrer">Ollama</a> <a href="https://github.com/ollama/ollama" target="_blank" rel="noopener noreferrer" class="link-arrow">→</a></h3>
                         <p>Contributor to the local LLM inference framework — serving, quantization, and tool-use for consumer hardware.</p>
                     </div>
                     <div class="entry">
-                        <h3><a href="https://github.com/NousResearch/hermes-agent" target="_blank">Hermes Agent</a> <a href="https://github.com/NousResearch/hermes-agent" target="_blank" class="link-arrow">→</a></h3>
+                        <h3><a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener noreferrer">Hermes Agent</a> <a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener noreferrer" class="link-arrow">→</a></h3>
                         <p>Open-source AI agent framework with persistent memory, skills, and tool orchestration.</p>
                     </div>
                     <div class="entry">
-                        <h3><a href="https://github.com/PsycheFoundation" target="_blank">Psyche Foundation</a> <a href="https://github.com/PsycheFoundation" target="_blank" class="link-arrow">→</a></h3>
+                        <h3><a href="https://github.com/PsycheFoundation" target="_blank" rel="noopener noreferrer">Psyche Foundation</a> <a href="https://github.com/PsycheFoundation" target="_blank" rel="noopener noreferrer" class="link-arrow">→</a></h3>
                         <p>Open infrastructure to democratize and decentralize the development of superintelligence for humanity.</p>
                     </div>
                 </section>
@@ -105,12 +107,12 @@
                 <section class="projects">
                     <h2>Projects</h2>
                     <ul class="project-list">
-                        <li><a href="https://github.com/Code4me2/codex-ip" target="_blank">Codex IP</a></li>
-                        <li><a href="https://github.com/Code4me2/thread-phase" target="_blank">Thread Phase</a></li>
-                        <li><a href="https://github.com/Code4me2/hestia-shell" target="_blank">Hestia OS</a></li>
-                        <li><a href="https://github.com/Code4me2/patent-inference" target="_blank">Patent Inference</a></li>
-                        <li><a href="https://github.com/Code4me2/autonomous-ollama" target="_blank">Autonomous Ollama</a></li>
-                        <li><a href="https://github.com/Code4me2/chiya-library" target="_blank">Chiya Library</a></li>
+                        <li><a href="https://github.com/Code4me2/codex-ip" target="_blank" rel="noopener noreferrer">Codex IP</a></li>
+                        <li><a href="https://github.com/Code4me2/thread-phase" target="_blank" rel="noopener noreferrer">Thread Phase</a></li>
+                        <li><a href="https://github.com/Code4me2/hestia-shell" target="_blank" rel="noopener noreferrer">Hestia OS</a></li>
+                        <li><a href="https://github.com/Code4me2/patent-inference" target="_blank" rel="noopener noreferrer">Patent Inference</a></li>
+                        <li><a href="https://github.com/Code4me2/autonomous-ollama" target="_blank" rel="noopener noreferrer">Autonomous Ollama</a></li>
+                        <li><a href="https://github.com/Code4me2/chiya-library" target="_blank" rel="noopener noreferrer">Chiya Library</a></li>
                     </ul>
                 </section>
             </div>
