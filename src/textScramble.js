@@ -62,20 +62,14 @@ const TextScramble = (() => {
     for (let i = 0; i < graphemes.length; i++) {
       const span = document.createElement('span');
       span.className = 'scramble-char';
-      span.textContent = isWhitespace(graphemes[i]) ? '\u00a0' : graphemes[i];
+      span.textContent = displayChar(graphemes[i]);
       spans[i] = span;
       frag.appendChild(span);
     }
     el.textContent = '';
     el.appendChild(frag);
 
-    // Force reflow so spans are laid out with the real font
-    void el.offsetHeight;
-
-    // Lock each span's measured width
-    for (let i = 0; i < spans.length; i++) {
-      spans[i].style.width = Math.ceil(spans[i].getBoundingClientRect().width) + 'px';
-    }
+    refreshSpanWidths(spans, graphemes);
 
     return spans;
   }
@@ -91,6 +85,23 @@ const TextScramble = (() => {
   function setAllChars(spans, chars) {
     for (let i = 0; i < chars.length; i++) {
       setCharAt(spans, i, chars[i]);
+    }
+  }
+
+  function refreshSpanWidths(spans, graphemes) {
+    const currentText = spans.map((span) => span.textContent);
+
+    for (let i = 0; i < spans.length; i++) {
+      spans[i].style.width = '';
+      spans[i].textContent = displayChar(graphemes[i]);
+    }
+
+    // Force reflow so spans are measured with the element's current CSS.
+    if (spans[0]) void spans[0].offsetHeight;
+
+    for (let i = 0; i < spans.length; i++) {
+      spans[i].style.width = Math.ceil(spans[i].getBoundingClientRect().width) + 'px';
+      spans[i].textContent = currentText[i];
     }
   }
 
@@ -214,10 +225,10 @@ const TextScramble = (() => {
     }
 
     let frameId = null;
+    let resizeFrameId = null;
     let running = true;
     const lastTouched = new Float64Array(N);
     const activeIndices = new Set();
-    let frame = 0;
     const frameInterval = 33;
     let lastFrame = 0;
 
@@ -239,6 +250,19 @@ const TextScramble = (() => {
 
     function onPointerLeave() {
       activeIndices.clear();
+    }
+
+    function refreshLayout() {
+      refreshSpanWidths(spans, graphemes);
+      lockWidth(el, graphemes.join(''));
+    }
+
+    function scheduleLayoutRefresh() {
+      if (!running || resizeFrameId !== null) return;
+      resizeFrameId = requestAnimationFrame(() => {
+        resizeFrameId = null;
+        if (running) refreshLayout();
+      });
     }
 
     function tick(now) {
@@ -270,12 +294,12 @@ const TextScramble = (() => {
         }
       }
 
-      frame++;
       frameId = requestAnimationFrame(tick);
     }
 
     el.addEventListener('pointermove', onPointerMove, { passive: true });
     el.addEventListener('pointerleave', onPointerLeave, { passive: true });
+    window.addEventListener('resize', scheduleLayoutRefresh, { passive: true });
 
     lockWidth(el, graphemes.join(''));
     el.classList.add('is-scrambling');
@@ -286,8 +310,10 @@ const TextScramble = (() => {
       destroy() {
         running = false;
         cancelAnimationFrame(frameId);
+        if (resizeFrameId !== null) cancelAnimationFrame(resizeFrameId);
         el.removeEventListener('pointermove', onPointerMove);
         el.removeEventListener('pointerleave', onPointerLeave);
+        window.removeEventListener('resize', scheduleLayoutRefresh);
         el.classList.remove('is-scrambling');
         unlockWidth(el);
         setAllChars(spans, graphemes);
