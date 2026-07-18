@@ -17,9 +17,17 @@
         }
     }
 
+    function updateToggleState(theme) {
+        if (!toggle) return;
+        const isDark = theme === 'dark';
+        toggle.setAttribute('aria-pressed', String(isDark));
+        toggle.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+    }
+
     function setTheme(theme, persist = true) {
         if (!isValidTheme(theme)) return;
         root.setAttribute('data-theme', theme);
+        updateToggleState(theme);
         if (persist) {
             try {
                 localStorage.setItem('theme', theme);
@@ -27,13 +35,8 @@
         }
     }
 
-    // Check saved preference or system preference
-    const saved = getSavedTheme();
-    if (saved) {
-        setTheme(saved, false);
-    } else if (mql && mql.matches) {
-        setTheme('dark', false);
-    }
+    // The inline head script applies the initial preference before first paint.
+    updateToggleState(root.getAttribute('data-theme'));
 
     if (!toggle) return;
 

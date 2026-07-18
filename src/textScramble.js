@@ -119,18 +119,6 @@ const TextScramble = (() => {
     el.style.minWidth = '';
   }
 
-  // ── Accessibility ──
-
-  function applyA11y(el, busy) {
-    if (busy) {
-      el.setAttribute('aria-busy', 'true');
-      el.setAttribute('aria-label', el.textContent || '');
-    } else {
-      el.removeAttribute('aria-busy');
-      el.removeAttribute('aria-label');
-    }
-  }
-
   // ── Mount sweep (deterministic wave) ──
 
   function scheduleSweep(i, N, duration, direction) {
@@ -232,6 +220,12 @@ const TextScramble = (() => {
     const frameInterval = 33;
     let lastFrame = 0;
 
+    function ensureAnimation() {
+      if (!running || frameId !== null) return;
+      lastFrame = 0;
+      frameId = requestAnimationFrame(tick);
+    }
+
     function onPointerMove(e) {
       if (!running) return;
       activeIndices.clear();
@@ -246,6 +240,8 @@ const TextScramble = (() => {
           break;
         }
       }
+
+      if (activeIndices.size > 0) ensureAnimation();
     }
 
     function onPointerLeave() {
@@ -266,7 +262,10 @@ const TextScramble = (() => {
     }
 
     function tick(now) {
-      if (!running) return;
+      if (!running) {
+        frameId = null;
+        return;
+      }
       if (now - lastFrame < frameInterval) {
         frameId = requestAnimationFrame(tick);
         return;
@@ -277,6 +276,7 @@ const TextScramble = (() => {
         lastTouched[i] = now;
       }
 
+      let hasPendingAnimation = activeIndices.size > 0;
       for (let i = 0; i < N; i++) {
         const t = lastTouched[i];
 
@@ -285,6 +285,7 @@ const TextScramble = (() => {
             spans[i].textContent = displayChar(graphemes[i]);
           }
         } else if (now - t < settleMs) {
+          hasPendingAnimation = true;
           if (!isWhitespace(graphemes[i])) {
             spans[i].textContent = randomChar(charset);
           }
@@ -294,7 +295,7 @@ const TextScramble = (() => {
         }
       }
 
-      frameId = requestAnimationFrame(tick);
+      frameId = hasPendingAnimation ? requestAnimationFrame(tick) : null;
     }
 
     el.addEventListener('pointermove', onPointerMove, { passive: true });
@@ -304,12 +305,10 @@ const TextScramble = (() => {
     lockWidth(el, graphemes.join(''));
     el.classList.add('is-scrambling');
 
-    frameId = requestAnimationFrame(tick);
-
     return {
       destroy() {
         running = false;
-        cancelAnimationFrame(frameId);
+        if (frameId !== null) cancelAnimationFrame(frameId);
         if (resizeFrameId !== null) cancelAnimationFrame(resizeFrameId);
         el.removeEventListener('pointermove', onPointerMove);
         el.removeEventListener('pointerleave', onPointerLeave);
@@ -351,6 +350,31 @@ const TextScramble = (() => {
 
     let graphemes = getGraphemes(opts.text !== undefined ? opts.text : el.textContent || '');
 
+    const originalA11y = {
+      label: { present: el.hasAttribute('aria-label'), value: el.getAttribute('aria-label') },
+      busy: { present: el.hasAttribute('aria-busy'), value: el.getAttribute('aria-busy') },
+    };
+
+    function restoreAttribute(name, snapshot) {
+      if (snapshot.present) el.setAttribute(name, snapshot.value);
+      else el.removeAttribute(name);
+    }
+
+    function restoreA11y() {
+      restoreAttribute('aria-label', originalA11y.label);
+      restoreAttribute('aria-busy', originalA11y.busy);
+    }
+
+    function applyAnimatedA11y(busy) {
+      // Keep the accessible name stable while the visible glyphs change.
+      const accessibleText = originalA11y.label.present
+        ? originalA11y.label.value
+        : graphemes.join('');
+      el.setAttribute('aria-label', accessibleText);
+      if (busy) el.setAttribute('aria-busy', 'true');
+      else restoreAttribute('aria-busy', originalA11y.busy);
+    }
+
     const reduced = prefersReducedMotion();
     const doMount = mode === 'mount' || mode === 'both';
     const doPointer = mode === 'pointer' || mode === 'both';
@@ -373,7 +397,6 @@ const TextScramble = (() => {
         destroy() {
           destroyed = true;
           unlockWidth(el);
-          applyA11y(el, false);
         },
         setText(text) {
           setTextQueue = setTextQueue.catch(() => {}).then(() => applyReducedText(text));
@@ -400,11 +423,15 @@ const TextScramble = (() => {
 
       if (graphemes.length === 0) {
         const spans = await buildSpans(el, graphemes);
-        if (!destroyed) setAllChars(spans, graphemes);
+        if (!destroyed) {
+          setAllChars(spans, graphemes);
+          restoreA11y();
+        }
         return;
       }
 
       if (doPointer) {
+        applyAnimatedA11y(false);
         const nextPointerCtrl = await runPointerMode(el, graphemes, charset, pointerRadius, settleMs);
         if (destroyed) {
           nextPointerCtrl.destroy();
@@ -415,24 +442,30 @@ const TextScramble = (() => {
       }
 
       const spans = await buildSpans(el, graphemes);
-      if (!destroyed) setAllChars(spans, graphemes);
+      if (!destroyed) {
+        setAllChars(spans, graphemes);
+        restoreA11y();
+      }
     }
 
     if (doMount) {
-      applyA11y(el, true);
+      applyAnimatedA11y(true);
       el.classList.add('is-scrambling');
 
       await runMountSweep(el, graphemes, charset, mountDuration, sweepDir);
 
       el.classList.remove('is-scrambling');
       unlockWidth(el);
-      applyA11y(el, false);
 
-      // After mount, hand off to pointer mode
+      // After mount, hand off to pointer mode.
       if (doPointer) {
+        applyAnimatedA11y(false);
         pointerCtrl = await runPointerMode(el, graphemes, charset, pointerRadius, settleMs);
+      } else {
+        restoreA11y();
       }
     } else if (doPointer) {
+      applyAnimatedA11y(false);
       pointerCtrl = await runPointerMode(el, graphemes, charset, pointerRadius, settleMs);
     }
 
@@ -443,7 +476,7 @@ const TextScramble = (() => {
         pointerCtrl = null;
         el.classList.remove('scramble-trigger', 'is-scrambling');
         unlockWidth(el);
-        applyA11y(el, false);
+        restoreA11y();
       },
       setText(text) {
         setTextQueue = setTextQueue.catch(() => {}).then(() => applyText(text));

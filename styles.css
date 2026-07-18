@@ -217,14 +217,14 @@ section h2 {
 }
 
 .link-arrow {
+    display: inline-block;
     font-size: 0.85em;
     color: var(--text-faint);
-    text-decoration: none;
     margin-left: 6px;
     transition: color 0.2s;
 }
 
-.link-arrow:hover {
+.left-column .entry h3 a:hover .link-arrow {
     color: var(--accent);
 }
 
@@ -400,11 +400,12 @@ header > .scramble-trigger {
     }
 
     .topbar-links {
-        gap: 12px;
+        gap: clamp(6px, 3vw, 12px);
+        white-space: nowrap;
     }
 
     .topbar-link {
-        font-size: 0.72em;
+        font-size: clamp(0.64em, 3.4vw, 0.72em);
     }
 
     .wrapper {
@@ -413,5 +414,12 @@ header > .scramble-trigger {
 
     header h1 {
         font-size: 1.8em;
+    }
+}
+
+@media (max-width: 340px) {
+    .topbar {
+        justify-content: flex-start;
+        padding: 0 62px 0 12px;
     }
 }

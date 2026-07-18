@@ -16,9 +16,10 @@
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Vel Moon — Legal Tech · Computational Physics · Local Inference">
     <meta name="twitter:description" content="Building practical tools at the intersection of law and computational physics. Contributor to major local inference frameworks.">
-    <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
     <script>
         (function(){
             var saved = null;
@@ -42,9 +43,9 @@
             <a href="https://code4me2.github.io/blog/" class="topbar-link">Blog</a>
             <button id="copy-email" class="topbar-link email-button" type="button" title="Copy email to clipboard">Email</button>
         </div>
-        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark mode">
-            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Dark mode" aria-pressed="false" title="Switch to dark mode">
+            <svg class="icon-sun" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            <svg class="icon-moon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         </button>
     </div>
 
@@ -80,19 +81,19 @@
                 <section>
                     <h2>Open Source Contributions</h2>
                     <div class="entry">
-                        <h3><a href="https://github.com/vllm-project/vllm" target="_blank" rel="noopener noreferrer">vLLM</a> <a href="https://github.com/vllm-project/vllm" target="_blank" rel="noopener noreferrer" class="link-arrow">→</a></h3>
+                        <h3><a href="https://github.com/vllm-project/vllm" target="_blank" rel="noopener noreferrer">vLLM <span class="link-arrow" aria-hidden="true">→</span></a></h3>
                         <p>Contributor to the high-throughput LLM inference engine with PagedAttention — powering most open-source LLM serving.</p>
                     </div>
                     <div class="entry">
-                        <h3><a href="https://github.com/ollama/ollama" target="_blank" rel="noopener noreferrer">Ollama</a> <a href="https://github.com/ollama/ollama" target="_blank" rel="noopener noreferrer" class="link-arrow">→</a></h3>
+                        <h3><a href="https://github.com/ollama/ollama" target="_blank" rel="noopener noreferrer">Ollama <span class="link-arrow" aria-hidden="true">→</span></a></h3>
                         <p>Contributor to the local LLM inference framework — serving, quantization, and tool-use for consumer hardware.</p>
                     </div>
                     <div class="entry">
-                        <h3><a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener noreferrer">Hermes Agent</a> <a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener noreferrer" class="link-arrow">→</a></h3>
+                        <h3><a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noopener noreferrer">Hermes Agent <span class="link-arrow" aria-hidden="true">→</span></a></h3>
                         <p>Open-source AI agent framework with persistent memory, skills, and tool orchestration.</p>
                     </div>
                     <div class="entry">
-                        <h3><a href="https://github.com/PsycheFoundation" target="_blank" rel="noopener noreferrer">Psyche Foundation</a> <a href="https://github.com/PsycheFoundation" target="_blank" rel="noopener noreferrer" class="link-arrow">→</a></h3>
+                        <h3><a href="https://github.com/PsycheFoundation" target="_blank" rel="noopener noreferrer">Psyche Foundation <span class="link-arrow" aria-hidden="true">→</span></a></h3>
                         <p>Open infrastructure to democratize and decentralize the development of superintelligence for humanity.</p>
                     </div>
                 </section>
