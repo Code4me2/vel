@@ -230,14 +230,40 @@ const TextScramble = (() => {
       if (!running) return;
       activeIndices.clear();
 
-      for (let i = 0; i < spans.length; i++) {
-        const r = spans[i].getBoundingClientRect();
-        if (e.clientX >= r.left && e.clientX <= r.right) {
-          for (let d = -pointerRadius; d <= pointerRadius; d++) {
-            const j = i + d;
-            if (j >= 0 && j < N) activeIndices.add(j);
+      // Prefer the event target: each character owns its full inline box, so
+      // this remains accurate when text wraps onto multiple lines.
+      let hitIndex = spans.indexOf(e.target);
+
+      // Fall back to two-dimensional bounds for events targeted at the parent
+      // (for example, near a glyph's transparent pixels). Checking both axes
+      // prevents a character on another line with the same x-position from
+      // being selected.
+      if (hitIndex === -1) {
+        for (let i = 0; i < spans.length; i++) {
+          const r = spans[i].getBoundingClientRect();
+          if (
+            e.clientX >= r.left &&
+            e.clientX <= r.right &&
+            e.clientY >= r.top &&
+            e.clientY <= r.bottom
+          ) {
+            hitIndex = i;
+            break;
           }
-          break;
+        }
+      }
+
+      if (hitIndex !== -1) {
+        const hitRect = spans[hitIndex].getBoundingClientRect();
+        for (let d = -pointerRadius; d <= pointerRadius; d++) {
+          const j = hitIndex + d;
+          if (j < 0 || j >= N) continue;
+
+          // Logical neighbors can land on opposite ends of adjacent wrapped
+          // lines. Only animate neighbors that share the hovered visual line.
+          const neighborRect = spans[j].getBoundingClientRect();
+          const sharesLine = neighborRect.bottom > hitRect.top && neighborRect.top < hitRect.bottom;
+          if (sharesLine) activeIndices.add(j);
         }
       }
 
