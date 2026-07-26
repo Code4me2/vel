@@ -15,7 +15,7 @@
 [data-theme="dark"] {
     --bg: #0e0e0e;
     --bg-alt: #141414;
-    --text: #e8e8e8;
+    --text: #d2a474;
     --text-muted: #999;
     --text-faint: #666;
     --border: rgba(255, 255, 255, 0.1);
@@ -76,7 +76,7 @@ body {
 }
 
 .topbar-link:hover {
-    color: var(--text);
+    color: var(--accent);
 }
 
 .email-button {
