@@ -7,8 +7,8 @@
     --text-faint: #888;
     --border: rgba(0, 0, 0, 0.1);
     --border-light: rgba(0, 0, 0, 0.05);
-    --accent: #2563eb;
-    --accent-bg: #dbeafe;
+    --accent: #b45309;
+    --accent-bg: #ffedd5;
     --topbar-bg: rgba(239, 239, 233, 0.95);
 }
 
@@ -20,8 +20,8 @@
     --text-faint: #666;
     --border: rgba(255, 255, 255, 0.1);
     --border-light: rgba(255, 255, 255, 0.05);
-    --accent: #7dd3fc;
-    --accent-bg: rgba(125, 211, 252, 0.15);
+    --accent: #fdba74;
+    --accent-bg: rgba(253, 186, 116, 0.15);
     --topbar-bg: rgba(14, 14, 14, 0.95);
 }
 
