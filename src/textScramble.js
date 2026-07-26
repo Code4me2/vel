@@ -100,7 +100,10 @@ const TextScramble = (() => {
     if (spans[0]) void spans[0].offsetHeight;
 
     for (let i = 0; i < spans.length; i++) {
-      spans[i].style.width = Math.ceil(spans[i].getBoundingClientRect().width) + 'px';
+      // Preserve subpixel widths. Rounding every character up can add dozens
+      // of pixels to longer single-line text and force it past the viewport.
+      const width = spans[i].getBoundingClientRect().width;
+      spans[i].style.width = width.toFixed(3) + 'px';
       spans[i].textContent = currentText[i];
     }
   }

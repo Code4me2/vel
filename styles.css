@@ -149,7 +149,7 @@ header h1 {
 
 .tagline {
     font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: clamp(0.69rem, 3.5vw, 1.05rem);
+    font-size: clamp(0.5rem, 3vw, 1.05rem);
     color: var(--text-faint);
     font-weight: 500;
     letter-spacing: 0;
