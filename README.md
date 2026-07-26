@@ -1,6 +1,6 @@
 # vel
 
-Personal website for Vel Moon, published as a static GitHub Pages site.
+Personal website for Velvet Moon, published as a static GitHub Pages site.
 
 ## Local preview
 
