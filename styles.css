@@ -7,8 +7,8 @@
     --text-faint: #888;
     --border: rgba(0, 0, 0, 0.1);
     --border-light: rgba(0, 0, 0, 0.05);
-    --accent: #b45309;
-    --accent-bg: #ffedd5;
+    --accent: #3f6212;
+    --accent-bg: #ecfccb;
     --topbar-bg: rgba(239, 239, 233, 0.95);
 }
 
@@ -20,8 +20,8 @@
     --text-faint: #666;
     --border: rgba(255, 255, 255, 0.1);
     --border-light: rgba(255, 255, 255, 0.05);
-    --accent: #fdba74;
-    --accent-bg: rgba(253, 186, 116, 0.15);
+    --accent: #bef264;
+    --accent-bg: rgba(190, 242, 100, 0.15);
     --topbar-bg: rgba(14, 14, 14, 0.95);
 }
 
@@ -34,7 +34,7 @@
 body {
     background-color: var(--bg);
     color: var(--text);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     font-size: 15px;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
@@ -137,7 +137,7 @@ header {
 }
 
 header h1 {
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'IBM Plex Serif', Georgia, serif;
     font-size: 3em;
     font-weight: 700;
     letter-spacing: -1.5px;
@@ -171,7 +171,7 @@ section {
 }
 
 section h2 {
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'IBM Plex Serif', Georgia, serif;
     font-size: 1.1em;
     font-weight: 600;
     color: var(--text);
@@ -186,7 +186,7 @@ section h2 {
 }
 
 .left-column .entry h3 {
-    font-family: 'Newsreader', Georgia, serif;
+    font-family: 'IBM Plex Serif', Georgia, serif;
     font-size: 1.25em;
     font-weight: 600;
     color: var(--text);
@@ -330,7 +330,7 @@ header > .scramble-trigger {
     border-radius: 8px;
     font-size: 0.85em;
     font-weight: 500;
-    font-family: 'Inter', sans-serif;
+    font-family: 'IBM Plex Sans', sans-serif;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease, transform 0.2s ease;
