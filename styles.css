@@ -138,7 +138,7 @@ header {
 }
 
 header h1 {
-    font-family: 'Playfair Display', serif;
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     font-size: clamp(1.45em, 5vw, 3em);
     font-weight: 700;
     line-height: 1.3;
