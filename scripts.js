@@ -24,20 +24,10 @@
         toggle.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
     }
 
-    function updateFavicon(theme) {
-        const color = theme === 'dark' ? '#ffb3ba' : '#3f6212';
-        const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M28 16a12 12 0 1 1-24 0 12 12 0 0 1 24 0zM28 16a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" fill="' + color + '" fill-rule="evenodd"/></svg>';
-        const link = document.querySelector('link[rel="icon"]');
-        if (link) {
-            link.href = 'data:image/svg+xml,' + encodeURIComponent(svg);
-        }
-    }
-
     function setTheme(theme, persist = true) {
         if (!isValidTheme(theme)) return;
         root.setAttribute('data-theme', theme);
         updateToggleState(theme);
-        updateFavicon(theme);
         if (persist) {
             try {
                 localStorage.setItem('theme', theme);
@@ -47,7 +37,6 @@
 
     // The inline head script applies the initial preference before first paint.
     updateToggleState(root.getAttribute('data-theme'));
-    updateFavicon(root.getAttribute('data-theme'));
 
     if (!toggle) return;
 
