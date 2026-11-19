@@ -276,14 +276,33 @@ section h2 {
     opacity: 1;
 }
 
-/* ── Hugging Face models ── */
-.models p {
-    font-size: 0.9em;
+/* ── Quantized models ── */
+.models-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 12px;
+    margin-bottom: 18px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+}
+
+.models-heading h2 {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+#hf-downloads,
+.model-downloads {
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.95em;
+    font-weight: 400;
     color: var(--text-muted);
 }
 
-.models p a {
-    color: inherit;
+.model-downloads {
+    white-space: nowrap;
 }
 
 .models .project-list a {

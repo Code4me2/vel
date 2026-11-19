@@ -21,7 +21,7 @@ test('shows only public models and never reports a partial total', async () => {
                 getElementById: id => nodes[id],
                 querySelector: () => null,
                 documentElement: { getAttribute: () => null },
-                createElement: () => ({ append(link) { this.link = link; } }),
+                createElement: () => ({ append(child) { this.child = child; } }),
             },
             window: {},
             fetch: async () => Response.json(data, { headers: paginated ? { link: '<next>; rel="next"' } : {} }),
@@ -31,9 +31,11 @@ test('shows only public models and never reports a partial total', async () => {
             assert.equal(status.textContent, 'Download counts are currently unavailable.');
             assert.equal(list.rows, undefined);
         } else {
-            assert.equal(status.textContent, '2 public models · 42 all-time downloads');
-            assert.deepEqual(list.rows.map(row => row.link.textContent), ['model-a · 30', 'model-b · 12']);
-            assert.equal(list.rows[0].link.href, 'https://huggingface.co/Code4me2/model-a');
+            assert.equal(status.textContent, '42 total downloads');
+            assert.deepEqual(list.rows.map(row => row.child.textContent), ['model-a', 'model-b']);
+            assert.deepEqual(list.rows.map(row => row.child.child.textContent), [' · 30', ' · 12']);
+            assert.equal(list.rows[0].child.child.className, 'model-downloads');
+            assert.equal(list.rows[0].child.href, 'https://huggingface.co/Code4me2/model-a');
         }
     }
 });

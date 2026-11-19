@@ -128,12 +128,16 @@
             const item = document.createElement('li');
             const link = document.createElement('a');
             link.href = `${hub}/Code4me2/${name}`;
-            link.textContent = `${name} · ${format.format(downloadsAllTime)}`;
+            link.textContent = name;
+            const count = document.createElement('span');
+            count.className = 'model-downloads';
+            count.textContent = ` · ${format.format(downloadsAllTime)}`;
+            link.append(count);
             item.append(link);
             return item;
         });
         list.replaceChildren(...rows);
-        status.textContent = `${format.format(models.length)} public ${models.length === 1 ? 'model' : 'models'} · ${format.format(total)} all-time downloads`;
+        status.textContent = `${format.format(total)} total downloads`;
     } catch {
         status.textContent = 'Download counts are currently unavailable.';
     }
