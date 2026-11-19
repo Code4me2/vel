@@ -276,6 +276,20 @@ section h2 {
     opacity: 1;
 }
 
+/* ── Hugging Face models ── */
+.models p {
+    font-size: 0.9em;
+    color: var(--text-muted);
+}
+
+.models p a {
+    color: inherit;
+}
+
+.models .project-list a {
+    overflow-wrap: anywhere;
+}
+
 /* ── Scramble Effect ── */
 .scramble-trigger {
     display: inline-block;
@@ -360,11 +374,12 @@ header > .scramble-trigger {
         display: contents;
     }
 
-    /* Mobile order: bio → experience → open source → projects */
+    /* Mobile order: bio → experience → open source → projects → models */
     .bio { order: 1; }
     .left-column section:first-of-type { order: 2; } /* Experience */
     .left-column section:nth-of-type(2) { order: 3; } /* Open Source */
     .projects { order: 4; }
+    .models { order: 5; }
 
     .wrapper {
         padding: 60px 16px 60px 16px;

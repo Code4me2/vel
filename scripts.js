@@ -104,6 +104,41 @@
     });
 })();
 
+// ── Public Hugging Face model downloads ──
+(async function () {
+    const status = document.getElementById('hf-downloads');
+    const list = document.getElementById('hf-models');
+    if (!status || !list) return;
+
+    const hub = 'https://huggingface.co';
+    const format = new Intl.NumberFormat();
+    status.textContent = 'Loading download counts…';
+    try {
+        const response = await fetch(`${hub}/api/models?author=Code4me2&limit=1000&expand%5B%5D=private&expand%5B%5D=downloadsAllTime`, { credentials: 'omit' });
+        // ponytail: one page for this profile; follow Link pagination if it grows.
+        if (!response.ok || response.headers.has('link')) throw new Error('Incomplete model data');
+        const models = (await response.json()).filter(model => model?.private === false);
+        let total = 0;
+        const rows = models.map(({ id, downloadsAllTime }) => {
+            const name = typeof id === 'string' && /^Code4me2\/(\w[\w.-]*)$/i.exec(id)?.[1];
+            if (!name || !Number.isSafeInteger(downloadsAllTime) || downloadsAllTime < 0) {
+                throw new Error('Invalid model data');
+            }
+            total += downloadsAllTime;
+            const item = document.createElement('li');
+            const link = document.createElement('a');
+            link.href = `${hub}/Code4me2/${name}`;
+            link.textContent = `${name} · ${format.format(downloadsAllTime)}`;
+            item.append(link);
+            return item;
+        });
+        list.replaceChildren(...rows);
+        status.textContent = `${format.format(models.length)} public ${models.length === 1 ? 'model' : 'models'} · ${format.format(total)} all-time downloads`;
+    } catch {
+        status.textContent = 'Download counts are currently unavailable.';
+    }
+})();
+
 // ── Text scramble on page load + pointer hover (Spec v2) ──
 (function () {
     const h1 = document.querySelector('header h1');
